@@ -19,10 +19,27 @@ assets/           Logo, Portal-Zeichnung, Vorstandsfotos, QR-Code
 
 ## Noch offen (in `index.html` mit `TODO` markiert)
 
-- Link zum Anmeldeformular („Jetzt anmelden“)
 - Kontakt-E-Mail-Adresse (derzeit Platzhalter `kontakt@netzwerk-leopoldinum.de`)
 - Impressum und Datenschutz verlinken (für eine öffentliche Seite Pflicht)
 - Angebote „Alumni-Treffen“, „Mentoring“, „Vorträge & Einblicke“ prüfen
+
+## Anmeldeformular (Supabase)
+
+Das Formular im Abschnitt „Anmelden“ speichert Einträge in der Supabase-Tabelle `anmeldungen`.
+
+- `supabase/anmeldungen.sql` – Tabelle + Zugriffsregeln, einmal im Supabase SQL Editor ausführen
+- `js/config.js` – Projekt-URL und öffentlicher anon-Schlüssel
+- `js/anmeldung.js` – sendet das Formular an Supabase
+
+Der anon-Schlüssel ist öffentlich und darf im Code stehen; die Tabelle erlaubt Besuchern nur das
+Anlegen neuer Einträge. Anmeldungen sieht man im Dashboard unter **Table Editor → anmeldungen**.
+
+## Lokal starten
+
+```
+npm install
+npm run dev
+```
 
 ## Farben
 
