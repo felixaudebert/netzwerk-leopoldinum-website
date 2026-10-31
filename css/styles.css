@@ -438,6 +438,10 @@ p:last-child { margin-bottom: 0; }
 .field--check label { font-family: var(--font-body); font-weight: 400; }
 .field--check a { color: var(--blue); text-decoration: underline; }
 .hp { position: absolute; left: -9999px; }
+.form-section { font-size: 22px; color: var(--blue); margin: 24px 0 0; padding-top: 20px; border-top: 1px solid var(--line); }
+.form-section:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+.sepa-info { background: var(--white); border: 1px solid var(--line); border-radius: 8px; padding: 4px 18px; font-size: 15px; }
+.field small { font-size: 13px; }
 .signup-form .btn[disabled] { opacity: .6; cursor: wait; }
 .form-status { margin-top: 16px; min-height: 1.5em; }
 .form-status.is-success { color: #2f6b3a; }
@@ -447,6 +451,7 @@ p:last-child { margin-bottom: 0; }
 .legal-inner { max-width: calc(760px + 2 * var(--gutter)); }
 .legal h1 { font-size: clamp(34px, 4.6vw, 56px); margin: 24px 0 8px; }
 .legal h2 { font-size: 22px; margin: 40px 0 12px; color: var(--blue); }
+.legal h3 { font-size: 18px; margin: 28px 0 10px; }
 .legal p, .legal li { line-height: 1.65; }
 .legal ul { padding-left: 1.2em; }
 .legal a { color: var(--blue); }
@@ -494,6 +499,11 @@ fieldset.field legend { font-family: var(--font-head); font-weight: 600; font-si
 .members-table th, .members-table td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .members-table th { font-family: var(--font-head); }
 .badge { white-space: nowrap; font-weight: 600; }
+.members-table .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.details-row td { background: var(--paper); }
+.details { display: grid; grid-template-columns: max-content 1fr; gap: 6px 20px; margin: 4px 0; }
+.details dt { font-family: var(--font-head); font-weight: 600; }
+.details dd { margin: 0; }
 .badge--ok { color: #2f6b3a; }
 .badge--wait { color: var(--gold-dark); }
 

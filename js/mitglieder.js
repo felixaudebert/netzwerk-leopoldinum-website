@@ -196,7 +196,7 @@ $("#profil-form").addEventListener("submit", async (e) => {
   }
 
   status(f, "Wird gespeichert …", "info");
-  if (neu.stadt !== ich.stadt) {
+  if (neu.stadt !== ich.stadt || (neu.stadt && ich.lat == null)) {
     if (neu.stadt) {
       const ort = await findeStadt(neu.stadt).catch(() => null);
       if (!ort) {
@@ -269,7 +269,7 @@ async function ladeKarte() {
 async function ladeVorstand() {
   const { data, error } = await sb
     .from("mitglieder")
-    .select("id, created_at, email, vorname, nachname, rolle, jahrgang, nachricht, freigeschaltet")
+    .select("id, created_at, email, vorname, nachname, rolle, jahrgang, nachricht, taetigkeit, freigeschaltet")
     .order("freigeschaltet", { ascending: true })
     .order("created_at", { ascending: false });
   if (error) {
@@ -291,6 +291,11 @@ async function ladeVorstand() {
       el("td", m.freigeschaltet ? "Freigeschaltet" : "Wartet", m.freigeschaltet ? "badge badge--ok" : "badge badge--wait")
     );
     const td = document.createElement("td");
+    td.className = "actions";
+    const details = el("button", "Details", "btn btn-sm btn-ghost");
+    details.type = "button";
+    details.addEventListener("click", () => zeigeDetails(m, tr, details));
+    td.append(details);
     if (m.id !== ich.id) {
       const btn = el("button", m.freigeschaltet ? "Sperren" : "Freischalten", "btn btn-sm " + (m.freigeschaltet ? "btn-ghost" : "btn-gold"));
       btn.type = "button";
@@ -309,6 +314,46 @@ async function ladeVorstand() {
     tr.append(td);
     tbody.append(tr);
   });
+}
+
+// Antragsdaten (Adresse, Beitrag, SEPA) unter der Zeile auf- und zuklappen
+async function zeigeDetails(m, tr, button) {
+  const offen = tr.nextElementSibling?.classList.contains("details-row");
+  if (offen) {
+    tr.nextElementSibling.remove();
+    button.textContent = "Details";
+    return;
+  }
+  const { data: p, error } = await sb.from("mitglieder_privat").select("*").eq("id", m.id).maybeSingle();
+  const zeile = document.createElement("tr");
+  zeile.className = "details-row";
+  const td = document.createElement("td");
+  td.colSpan = 6;
+  if (error) {
+    console.error(error);
+    td.append(el("p", "Die Antragsdaten konnten nicht geladen werden."));
+  } else if (!p) {
+    td.append(el("p", "Kein Online-Antrag vorhanden (z. B. eingeladenes Bestandsmitglied).", "muted"));
+  } else {
+    const dl = document.createElement("dl");
+    dl.className = "details";
+    const eintraege = [
+      ["Geburtsdatum", new Date(p.geburtsdatum).toLocaleDateString("de-DE")],
+      ["Adresse", `${p.strasse}, ${p.plz} ${p.ort}`],
+      ["Beschäftigung", m.taetigkeit || "–"],
+      ["Jahresbeitrag", `${Number(p.beitrag_euro).toLocaleString("de-DE", { minimumFractionDigits: 2 })} €`],
+      ["Kontoinhaber", `${p.kontoinhaber}, ${p.kontoinhaber_anschrift}`],
+      ["IBAN", p.iban.replace(/(.{4})/g, "$1 ").trim()],
+      ["Kreditinstitut / BIC", [p.kreditinstitut, p.bic].filter(Boolean).join(" / ")],
+      ["SEPA-Mandat erteilt", new Date(p.sepa_mandat_am).toLocaleString("de-DE")],
+      ["Foto-Einwilligung", p.foto_einwilligung ? "Ja" : "Nein"],
+    ];
+    eintraege.forEach(([k, v]) => dl.append(el("dt", k), el("dd", v)));
+    td.append(dl);
+  }
+  zeile.append(td);
+  tr.after(zeile);
+  button.textContent = "Schließen";
 }
 
 start();

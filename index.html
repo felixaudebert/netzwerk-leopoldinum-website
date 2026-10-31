@@ -243,6 +243,7 @@
         <h2 class="signup-title reveal">Mitglied werden</h2>
 
         <form id="anmelde-form" class="signup-form reveal">
+          <h3 class="form-section field--full">Persönliche Angaben</h3>
           <div class="field">
             <label for="vorname">Vorname *</label>
             <input id="vorname" name="vorname" type="text" autocomplete="given-name" maxlength="100" required>
@@ -252,8 +253,8 @@
             <input id="nachname" name="nachname" type="text" autocomplete="family-name" maxlength="100" required>
           </div>
           <div class="field">
-            <label for="email">E-Mail *</label>
-            <input id="email" name="email" type="email" autocomplete="email" maxlength="200" required>
+            <label for="geburtsdatum">Geburtsdatum *</label>
+            <input id="geburtsdatum" name="geburtsdatum" type="date" autocomplete="bday" required>
           </div>
           <div class="field">
             <label for="rolle">Ich bin … *</label>
@@ -266,36 +267,99 @@
               <option value="sonstiges">Sonstiges</option>
             </select>
           </div>
-          <div class="field">
-            <label for="jahrgang">Abiturjahrgang</label>
-            <input id="jahrgang" name="jahrgang" type="number" min="1900" max="2100" inputmode="numeric">
+          <div class="field field--full">
+            <label for="strasse">Straße und Hausnummer *</label>
+            <input id="strasse" name="strasse" type="text" autocomplete="street-address" maxlength="200" required>
           </div>
           <div class="field">
-            <label for="passwort">Passwort für den Mitgliederbereich *</label>
+            <label for="plz">PLZ *</label>
+            <input id="plz" name="plz" type="text" inputmode="numeric" pattern="\d{4,5}" autocomplete="postal-code" required>
+          </div>
+          <div class="field">
+            <label for="ort">Ort *</label>
+            <input id="ort" name="ort" type="text" autocomplete="address-level2" maxlength="100" required>
+          </div>
+          <div class="field">
+            <label for="email">E-Mail *</label>
+            <input id="email" name="email" type="email" autocomplete="email" maxlength="200" required>
+          </div>
+          <div class="field">
+            <label for="jahrgang">Abschlussjahrgang (falls vorhanden)</label>
+            <input id="jahrgang" name="jahrgang" type="number" min="1900" max="2100" inputmode="numeric">
+          </div>
+          <div class="field field--full">
+            <label for="beschaeftigung">Beschäftigung (falls vorhanden)</label>
+            <input id="beschaeftigung" name="beschaeftigung" type="text" maxlength="200" placeholder="z. B. Studiengang, Berufsabschluss, berufliche Tätigkeit">
+          </div>
+
+          <h3 class="form-section field--full">Zugang zum Mitgliederbereich</h3>
+          <div class="field">
+            <label for="passwort">Passwort (mind. 8 Zeichen) *</label>
             <input id="passwort" name="passwort" type="password" autocomplete="new-password" minlength="8" required>
           </div>
           <div class="field">
             <label for="passwort2">Passwort wiederholen *</label>
             <input id="passwort2" name="passwort2" type="password" autocomplete="new-password" minlength="8" required>
           </div>
+
+          <h3 class="form-section field--full">SEPA-Lastschriftmandat für wiederkehrende Zahlungen</h3>
+          <div class="field--full sepa-info">
+            <p>Zahlungsempfänger: Netzwerk Leopoldinum e.V., Michaeligasse 15, 94032 Passau<br>
+              Gläubiger-Identifikationsnummer: DE33ZZZ00002818680<br>
+              Die Mandatsreferenz wird beim ersten Einzug mitgeteilt.</p>
+            <p>Der Jahresbeitrag wird jährlich im August fällig. Mindestbeitrag: 5&nbsp;€/Jahr bis zum 30. Lebensjahr, 25&nbsp;€/Jahr ab dem 31. Lebensjahr (Stand Mai 2025).</p>
+          </div>
+          <div class="field">
+            <label for="beitrag">Mein Jahresbeitrag in € *</label>
+            <input id="beitrag" name="beitrag" type="number" min="5" step="1" inputmode="numeric" required>
+            <small class="muted" id="beitrag-hinweis"></small>
+          </div>
+          <div class="field">
+            <label for="kontoinhaber">Kontoinhaber (Vorname Name) *</label>
+            <input id="kontoinhaber" name="kontoinhaber" type="text" autocomplete="cc-name" maxlength="140" required>
+          </div>
           <div class="field field--full">
-            <label for="nachricht">Nachricht (optional)</label>
-            <textarea id="nachricht" name="nachricht" rows="4" maxlength="2000"></textarea>
+            <label for="kontoinhaber_anschrift">Anschrift des Kontoinhabers *</label>
+            <input id="kontoinhaber_anschrift" name="kontoinhaber_anschrift" type="text" maxlength="300" required>
+            <small class="muted">Wird aus deiner Adresse übernommen – bitte ändern, falls das Konto jemand anderem gehört.</small>
+          </div>
+          <div class="field field--full">
+            <label for="iban">IBAN *</label>
+            <input id="iban" name="iban" type="text" autocomplete="off" spellcheck="false" maxlength="42" placeholder="DE00 0000 0000 0000 0000 00" required>
+          </div>
+          <div class="field">
+            <label for="kreditinstitut">Kreditinstitut (Name) *</label>
+            <input id="kreditinstitut" name="kreditinstitut" type="text" maxlength="140" required>
+          </div>
+          <div class="field">
+            <label for="bic">BIC (bei deutschen Konten optional)</label>
+            <input id="bic" name="bic" type="text" autocomplete="off" spellcheck="false" maxlength="11">
           </div>
           <div class="field field--full field--check">
-            <input id="mindestens16" name="mindestens16" type="checkbox" required>
-            <label for="mindestens16">Ich bin mindestens 16 Jahre alt. *</label>
+            <input id="sepa_mandat" name="sepa_mandat" type="checkbox" required>
+            <label for="sepa_mandat">Ich ermächtige den Netzwerk Leopoldinum e.V., Zahlungen von meinem Konto mittels Lastschrift einzuziehen. Zugleich weise ich mein Kreditinstitut an, die vom Netzwerk Leopoldinum e.V. auf mein Konto gezogenen Lastschriften einzulösen. Ich bin bereit, die jeweils geltenden Mitgliedsbeiträge aufzubringen.
+              <span class="muted">Hinweis: Ich kann innerhalb von acht Wochen, beginnend mit dem Belastungsdatum, die Erstattung des belasteten Betrags verlangen. Es gelten dabei die mit meinem Kreditinstitut vereinbarten Bedingungen.</span> *</label>
           </div>
+
+          <h3 class="form-section field--full">Einwilligungen</h3>
           <div class="field field--full field--check">
             <input id="einwilligung" name="einwilligung" type="checkbox" required>
-            <label for="einwilligung">Ich bin einverstanden, dass meine Angaben zur Bearbeitung der Anmeldung gespeichert werden (siehe <a href="datenschutz.html">Datenschutz</a>). *</label>
+            <label for="einwilligung">Ich beantrage mit sofortiger Wirkung die Aufnahme in den gemeinnützigen Verein Netzwerk Leopoldinum e.V. Ich bin damit einverstanden, dass meine Daten zum Zwecke der Vereinsverwaltung elektronisch gespeichert und verarbeitet werden und ich über die oben angegebene E-Mail-Adresse Informationen erhalte (siehe <a href="datenschutz.html">Datenschutz</a>). *</label>
+          </div>
+          <div class="field field--full field--check">
+            <input id="foto_einwilligung" name="foto_einwilligung" type="checkbox">
+            <label for="foto_einwilligung"><strong>Freiwillig:</strong> Ich erkläre mich damit einverstanden, dass im Rahmen von Veranstaltungen des Netzwerk Leopoldinum e.V. Bilder und/oder Videos von den Teilnehmerinnen und Teilnehmern gemacht werden und zur Veröffentlichung auf der Homepage des Vereins, in Printpublikationen und auf Social Media verwendet und zu diesem Zweck gespeichert werden dürfen. Die Fotos und/oder Videos dienen ausschließlich der Öffentlichkeitsarbeit des Vereins. Mir ist bewusst, dass Fotos und/oder Videos im Internet von beliebigen Personen abgerufen werden können und trotz aller technischen Vorkehrungen nicht ausgeschlossen werden kann, dass solche Personen sie weiterverwenden oder weitergeben. Diese Einwilligung kann ich jederzeit per E-Mail an info@netzwerk-leopoldinum.de widerrufen.</label>
+          </div>
+          <div class="field field--full">
+            <label for="nachricht">Nachricht an den Vorstand (optional)</label>
+            <textarea id="nachricht" name="nachricht" rows="3" maxlength="2000"></textarea>
           </div>
           <div class="hp" aria-hidden="true">
             <label for="website">Website</label>
             <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
           </div>
           <div class="field--full">
-            <button type="submit" class="btn btn-gold">Anmeldung absenden</button>
+            <button type="submit" class="btn btn-gold">Mitgliedsantrag absenden</button>
             <p id="anmelde-status" class="form-status" role="status" aria-live="polite"></p>
           </div>
         </form>
