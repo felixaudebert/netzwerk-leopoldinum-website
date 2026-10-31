@@ -27,12 +27,14 @@
       </button>
 
       <nav class="site-nav" id="site-nav">
-        <a href="index.html#ueber-uns">Über uns</a>
         <a href="index.html#saeulen">Unsere Säulen</a>
-        <a href="index.html#angebote">Angebote</a>
+        <a href="index.html#aktuelles">Aktuelles</a>
+        <a href="veranstaltungen.html">Veranstaltungen</a>
         <a href="index.html#vorstand">Vorstand</a>
-        <a href="mitglieder.html">Login</a>
-        <a href="index.html#mitmachen" class="btn btn-gold btn-sm">Mitglied werden</a>
+        <a href="mitglieder.html" data-nav="gast">Login</a>
+        <a href="index.html#anmelden" class="btn btn-gold btn-sm" data-nav="gast">Mitglied werden</a>
+        <a href="veranstaltungen.html#archiv" data-nav="mitglied" hidden>Archiv</a>
+        <a href="mitglieder.html#karte" class="btn btn-gold btn-sm" data-nav="mitglied" hidden>Karte</a>
       </nav>
     </div>
   </header>
@@ -114,12 +116,14 @@
         <p>Im Mitgliederbereich kannst du freiwillig ein Profil anlegen. Dabei verarbeiten wir zusätzlich die Angaben, die du selbst einträgst: Telefonnummer, Tätigkeit (z.&nbsp;B. Studiengang oder Beruf) und Stadt. Aus der Stadt ermitteln wir automatisch die ungefähren Koordinaten der Stadtmitte. Deine genaue Adresse wird nicht gespeichert.</p>
         <p><strong>Freischaltung:</strong> Neue Konten werden erst nach Prüfung durch ein Vorstandsmitglied freigeschaltet. Erst danach ist die Mitgliederkarte sichtbar. Der Vorstand sieht dafür die Angaben aus deiner Anmeldung.</p>
         <p><strong>Mitgliederkarte:</strong> Auf der Karte erscheinst du <em>nur</em>, wenn du in deinem Profil ausdrücklich einwilligst („Auf der Mitgliederkarte sichtbar sein“). Andere freigeschaltete Mitglieder sehen dann deinen Namen, deine Stadt, deine Tätigkeit und die von dir gewählte Kontaktmöglichkeit (E-Mail-Adresse oder Telefonnummer). Für die Öffentlichkeit ist die Karte nicht sichtbar. Rechtsgrundlage ist deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO). Du kannst sie jederzeit mit Wirkung für die Zukunft widerrufen, indem du das Häkchen in deinem Profil entfernst; du verschwindest dann sofort von der Karte. Den Zeitpunkt deiner Einwilligung speichern wir als Nachweis.</p>
+        <p><strong>Einträge durch den Vorstand:</strong> Mitglieder ohne eigenes Konto (z.&nbsp;B. mit Papierantrag) kann der Vorstand auf ihren Wunsch selbst auf der Karte eintragen – mit Name, Stadt und optional Tätigkeit sowie einer Kontaktmöglichkeit. Das geschieht nur mit ausdrücklicher Einwilligung der Person (Art. 6 Abs. 1 lit. a DSGVO); das Datum der Einwilligung speichern wir als Nachweis. Ein Widerruf ist jederzeit per E-Mail an <a href="mailto:info@netzwerk-leopoldinum.de">info@netzwerk-leopoldinum.de</a> möglich; der Eintrag wird dann gelöscht.</p>
         <p><strong>Kartendienst OpenStreetMap:</strong> Die Kartenansicht (Kartenkacheln) wird von den Servern der OpenStreetMap Foundation, St John’s Innovation Centre, Cowley Road, Cambridge, CB4 0WS, Vereinigtes Königreich, geladen. Auch die Umwandlung deiner Stadt in Koordinaten erfolgt über den Dienst „Nominatim“ der OpenStreetMap Foundation; dabei wird nur der Name der Stadt übermittelt. Bei diesen Abrufen erhält die OpenStreetMap Foundation deine IP-Adresse und technische Informationen deines Browsers. Das geschieht nur im Mitgliederbereich, nicht auf den öffentlichen Seiten. Für das Vereinigte Königreich besteht ein Angemessenheitsbeschluss der EU-Kommission (Art. 45 DSGVO). Rechtsgrundlage ist unser berechtigtes Interesse an einer funktionierenden Kartendarstellung (Art. 6 Abs. 1 lit. f DSGVO). Weitere Informationen: <a href="https://osmfoundation.org/wiki/Privacy_Policy" rel="noopener">osmfoundation.org/wiki/Privacy_Policy</a>.</p>
         <p><strong>Speicherdauer:</strong> Profilangaben speichern wir, solange dein Konto besteht. Mit dem Ende der Mitgliedschaft löschen wir dein Konto und dein Profil nach den in Abschnitt 6 genannten Regeln.</p>
 
         <h2>8. Datenbank-Dienstleister Supabase</h2>
         <p>Anmeldungen, Konten und Profile werden in einer Datenbank des Anbieters Supabase, Inc., 970 Toa Payoh North #07-04, Singapore 318992, gespeichert. Die Daten liegen auf Servern in der Europäischen Union (Irland). Wir haben mit Supabase einen Vertrag über Auftragsverarbeitung nach Art. 28 DSGVO geschlossen. Da Supabase seinen Sitz außerhalb der EU hat und Unterauftragnehmer aus Drittländern (insbesondere den USA) einsetzt, kann ein Zugriff aus diesen Ländern nicht vollständig ausgeschlossen werden. Für diesen Fall sind geeignete Garantien in Form der EU-Standardvertragsklauseln (Art. 46 Abs. 2 lit. c DSGVO) vereinbart.</p>
         <p>Supabase stellt auch die Login-Funktion bereit. Die zugehörigen E-Mails (Bestätigung der E-Mail-Adresse, Einladungen, Links zum Zurücksetzen des Passworts) werden über unseren E-Mail-Server bei IONOS versendet.</p>
+        <p>Auch die Berichte unter „Aktuelles“ und auf der Seite „Veranstaltungen“ samt Fotos und Videos werden beim Aufruf dieser Seiten aus der Datenbank bzw. dem Dateispeicher von Supabase geladen. Dabei erhält Supabase deine IP-Adresse und technische Informationen deines Browsers, die zur Auslieferung der Inhalte nötig sind. Rechtsgrundlage ist unser berechtigtes Interesse an einer aktuellen Darstellung unserer Veranstaltungen (Art. 6 Abs. 1 lit. f DSGVO).</p>
         <p>Der Zugriff auf die Datenbank ist technisch beschränkt: Jedes Mitglied kann nur sein eigenes Profil lesen und ändern. Auf der Karte sehen freigeschaltete Mitglieder nur die oben genannten Angaben von Mitgliedern, die eingewilligt haben. Nur der Vorstand sieht alle Anmeldungen.</p>
 
         <h2>9. Deine Rechte</h2>

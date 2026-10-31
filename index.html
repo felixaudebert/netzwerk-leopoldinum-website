@@ -28,12 +28,14 @@
       </button>
 
       <nav class="site-nav" id="site-nav">
-        <a href="#ueber-uns">Über uns</a>
         <a href="#saeulen">Unsere Säulen</a>
-        <a href="#angebote">Angebote</a>
+        <a href="#aktuelles">Aktuelles</a>
+        <a href="veranstaltungen.html">Veranstaltungen</a>
         <a href="#vorstand">Vorstand</a>
-        <a href="mitglieder.html">Login</a>
-        <a href="#mitmachen" class="btn btn-gold btn-sm">Mitglied werden</a>
+        <a href="mitglieder.html" data-nav="gast">Login</a>
+        <a href="#anmelden" class="btn btn-gold btn-sm" data-nav="gast">Mitglied werden</a>
+        <a href="veranstaltungen.html#archiv" data-nav="mitglied" hidden>Archiv</a>
+        <a href="mitglieder.html#karte" class="btn btn-gold btn-sm" data-nav="mitglied" hidden>Karte</a>
       </nav>
     </div>
   </header>
@@ -42,7 +44,7 @@
 
     <!-- ============ HERO ============ -->
     <section class="hero">
-      <div class="container hero-inner">
+      <div class="container">
         <div class="hero-text reveal">
           <p class="eyebrow">Netzwerk Leopoldinum</p>
           <h1>Verbunden über die Schulzeit hinaus.</h1>
@@ -51,129 +53,62 @@
             zusammen – für Austausch, Orientierung und neue Perspektiven.
           </p>
           <div class="hero-actions">
-            <a href="#mitmachen" class="btn btn-gold">Mitglied werden</a>
-            <a href="#saeulen" class="btn btn-ghost">Mehr erfahren</a>
-          </div>
-        </div>
-        <div class="hero-art reveal">
-          <img src="assets/portal.png" alt="Zeichnung des historischen Portals des Gymnasiums Leopoldinum" width="706" height="1080">
+            <a href="#anmelden" class="btn btn-gold">Mitglied werden</a>          </div>
         </div>
       </div>
     </section>
 
-    <!-- ============ ÜBER UNS ============ -->
-    <section class="section about" id="ueber-uns">
-      <div class="container">
-        <div class="section-head reveal">
-          <p class="eyebrow">Über uns</p>
-          <span class="gold-line"></span>
-        </div>
-        <div class="about-grid">
-          <p class="statement reveal">
-            Das Leopoldinum endet nicht mit dem Abitur. Aus vielen einzelnen Lebenswegen
-            entsteht ein gemeinsamer <span class="hl">Erfahrungsschatz</span>, der anderen Orientierung gibt.
-          </p>
-          <div class="about-copy reveal">
-            <p>
-              Das Netzwerk Leopoldinum ist die Gemeinschaft aller, die mit unserer Schule
-              verbunden sind. Wir halten den Kontakt zwischen den Generationen lebendig und
-              geben Erfahrungen aus Studium und Beruf an die heutige Schülerschaft weiter.
-            </p>
-            <p>
-              Ob als Ehemalige, Lehrkraft, Elternteil oder Schülerin und Schüler:
-              Jede und jeder kann Teil des Netzwerks werden und es mitgestalten.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ SÄULEN ============ -->
-    <section class="section pillars" id="saeulen">
-      <div class="container">
-        <div class="section-head reveal">
-          <p class="eyebrow">Unsere Säulen</p>
-          <span class="gold-line"></span>
-        </div>
-
-        <div class="pillar-grid">
+    <!-- ============ SÄULEN (Portalhälften fahren seitlich ein) ============ -->
+    <section class="pillars" id="saeulen">
+      <div class="pillar-panel pillar-panel--right">
+        <img class="pillar-portal" src="assets/portal.png" alt="" aria-hidden="true" width="706" height="1080">
+        <div class="container">
           <article class="pillar reveal">
-            <div class="pillar-art pillar-art--left" aria-hidden="true"></div>
-            <div class="pillar-body">
-              <span class="pillar-num">01</span>
-              <h2>Vernetzung</h2>
-              <ul class="ticks">
-                <li>Verbindet Generationen: Ehemalige, Schülerinnen und Schüler und die gesamte Schulfamilie</li>
-                <li>In Kontakt bleiben und Erfahrungen teilen</li>
-                <li>Orientierung und Einblicke in Studien- und Berufswege</li>
-                <li>Das Leopoldinum über die Schulzeit hinaus als Gemeinschaft leben</li>
-              </ul>
+            <div class="section-head">
+              <p class="eyebrow">Unsere Säulen</p>
+              <span class="gold-line"></span>
             </div>
+            <span class="pillar-num">01</span>
+            <h2>Vernetzung</h2>
+            <ul class="ticks">
+              <li>Verbindet Generationen: Ehemalige, Schülerinnen und Schüler und die gesamte Schulfamilie</li>
+              <li>In Kontakt bleiben und Erfahrungen teilen</li>
+              <li>Orientierung und Einblicke in Studien- und Berufswege</li>
+              <li>Das Leopoldinum über die Schulzeit hinaus als Gemeinschaft leben</li>
+            </ul>
           </article>
+        </div>
+      </div>
 
+      <div class="pillar-panel pillar-panel--left">
+        <img class="pillar-portal" src="assets/portal.png" alt="" aria-hidden="true" width="706" height="1080">
+        <div class="container">
           <article class="pillar reveal">
-            <div class="pillar-art pillar-art--right" aria-hidden="true"></div>
-            <div class="pillar-body">
-              <span class="pillar-num">02</span>
-              <h2>Förderung</h2>
-              <ul class="ticks">
-                <li>Aktives Engagement für die heutige Schülerschaft</li>
-                <li>Vorträge, Austausch und Unterstützung bei der Studien- und Berufsorientierung</li>
-                <li>Enge Zusammenarbeit mit Ehemaligen des Leopoldinums</li>
-                <li>Chancen schaffen, Potenziale entwickeln, den eigenen Weg selbstbewusst gestalten</li>
-              </ul>
-            </div>
+            <span class="pillar-num">02</span>
+            <h2>Förderung</h2>
+            <ul class="ticks">
+              <li>Aktives Engagement für die heutige Schülerschaft</li>
+              <li>Vorträge, Austausch und Unterstützung bei der Studien- und Berufsorientierung</li>
+              <li>Enge Zusammenarbeit mit Ehemaligen des Leopoldinums</li>
+              <li>Chancen schaffen, Potenziale entwickeln, den eigenen Weg selbstbewusst gestalten</li>
+            </ul>
           </article>
         </div>
       </div>
     </section>
 
-    <!-- ============ HIGHLIGHT: BERUFSORIENTIERUNGSTAG ============ -->
-    <section class="section highlight" id="angebote">
+    <!-- ============ AKTUELLES (Inhalte aus js/veranstaltungen.js) ============ -->
+    <section class="section news" id="aktuelles">
       <div class="container">
         <div class="section-head section-head--light reveal">
-          <p class="eyebrow">Angebote</p>
+          <p class="eyebrow">Aktuelles</p>
           <span class="gold-line"></span>
         </div>
 
-        <div class="highlight-grid">
-          <div class="reveal">
-            <h2>Berufsorientierungstag</h2>
-            <p class="lead">
-              Ehemalige kehren ans Leopoldinum zurück und erzählen offen von ihrem Weg nach dem Abitur –
-              vom Studium über die Ausbildung bis zum Auslandsjahr. Zuletzt am 30.&nbsp;Oktober&nbsp;2026.
-            </p>
-            <!-- TODO: Zahlen bei Bedarf anpassen -->
-            <dl class="stats">
-              <div><dt>15</dt><dd>Vorträge von Ehemaligen</dd></div>
-              <div><dt>1</dt><dd>Keynote zur Studienfinanzierung</dd></div>
-              <div><dt>3</dt><dd>Vortragsblöcke</dd></div>
-            </dl>
-          </div>
+        <div class="news-list" id="aktuelles-liste"></div>
 
-          <ol class="paths reveal">
-            <li><span>01</span><div><h3>Studium</h3><p>Universität oder Hochschule: ein Fach wissenschaftlich vertiefen</p></div></li>
-            <li><span>02</span><div><h3>Ausbildung</h3><p>Praxis im Betrieb und Theorie in der Berufsschule</p></div></li>
-            <li><span>03</span><div><h3>Duales Studium</h3><p>Studium und Praxis im Unternehmen verbinden</p></div></li>
-            <li><span>04</span><div><h3>Freiwilliges Jahr</h3><p>FSJ, FÖJ oder BFD: sich engagieren und orientieren</p></div></li>
-            <li><span>05</span><div><h3>Auslandsjahr</h3><p>Work &amp; Travel, Au-pair oder Sprachkurs im Ausland</p></div></li>
-          </ol>
-        </div>
-
-        <!-- TODO: weitere Angebote ergänzen oder entfernen -->
-        <div class="offer-grid">
-          <article class="offer reveal">
-            <h3>Alumni-Treffen</h3>
-            <p>Wiedersehen, Austausch und neue Kontakte über die Jahrgänge hinweg.</p>
-          </article>
-          <article class="offer reveal">
-            <h3>Mentoring</h3>
-            <p>Ehemalige stehen Schülerinnen und Schülern bei Fragen zu Studium und Beruf zur Seite.</p>
-          </article>
-          <article class="offer reveal">
-            <h3>Vorträge &amp; Einblicke</h3>
-            <p>Erfahrungen aus der Praxis – direkt an der Schule und aus erster Hand.</p>
-          </article>
+        <div class="news-more reveal">
+          <a href="veranstaltungen.html" class="btn btn-ghost-light">Alle Veranstaltungen &amp; Angebote</a>
         </div>
       </div>
     </section>
@@ -205,40 +140,10 @@
       </div>
     </section>
 
-    <!-- ============ MITMACHEN ============ -->
-    <section class="section join" id="mitmachen">
-      <div class="container">
-        <div class="section-head section-head--light reveal">
-          <p class="eyebrow">Mitmachen</p>
-          <span class="gold-line"></span>
-        </div>
-        <h2 class="join-title reveal">Das Netzwerk und Du!</h2>
-
-        <div class="join-grid">
-          <div class="join-card reveal">
-            <h3>Mitglied werden</h3>
-            <div class="join-member">
-              <div>
-                <p>Werde Teil des Netzwerks Leopoldinum – für Austausch, Kontakte und Orientierung über die Schulzeit hinaus.</p>
-                <a href="#anmelden" class="btn btn-gold">Jetzt anmelden</a>
-              </div>
-              <img src="assets/qr-mitglied.png" alt="QR-Code zur Anmeldung im Netzwerk Leopoldinum" width="160" height="160" class="qr">
-            </div>
-          </div>
-          <div class="join-card reveal">
-            <h3>Vorstandswahl 2027</h3>
-            <p>2027 wird der Vorstand des Netzwerks neu gewählt.</p>
-            <p>Du möchtest das Netzwerk mitgestalten? Dann bring dich ein – sprich uns gerne an!</p>
-            <a href="mailto:info@netzwerk-leopoldinum.de" class="btn btn-ghost-light">Kontakt aufnehmen</a>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- ============ ANMELDEN ============ -->
     <section class="section signup" id="anmelden">
       <div class="container">
-        <div class="section-head reveal">
+        <div class="section-head section-head--light reveal">
           <p class="eyebrow">Anmelden</p>
           <span class="gold-line"></span>
         </div>
@@ -388,5 +293,6 @@
   <script src="js/config.js"></script>
   <script src="js/supabase-client.js"></script>
   <script src="js/anmeldung.js"></script>
+  <script src="js/veranstaltungen-ansicht.js"></script>
 </body>
 </html>

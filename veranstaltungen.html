@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Veranstaltungen &amp; Angebote – Netzwerk Leopoldinum</title>
+  <meta name="description" content="Alle Veranstaltungen und Angebote des Netzwerk Leopoldinum e.V. – nach Jahren geordnet.">
+  <!-- TODO vor dem Start entfernen: Suchmaschinen sollen die Seite noch nicht anzeigen -->
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="assets/logo.png">
+
+  <link rel="preload" href="assets/fonts/league-spartan-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/didact-gothic-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- ============ HEADER ============ -->
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a href="index.html" class="brand" aria-label="Netzwerk Leopoldinum – zur Startseite">
+        <img src="assets/logo.png" alt="Netzwerk Leopoldinum" width="118" height="64">
+      </a>
+
+      <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">
+        <span class="sr-only">Menü</span>
+        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+      </button>
+
+      <nav class="site-nav" id="site-nav">
+        <a href="index.html#saeulen">Unsere Säulen</a>
+        <a href="index.html#aktuelles">Aktuelles</a>
+        <a href="veranstaltungen.html" class="is-active">Veranstaltungen</a>
+        <a href="index.html#vorstand">Vorstand</a>
+        <a href="mitglieder.html" data-nav="gast">Login</a>
+        <a href="index.html#anmelden" class="btn btn-gold btn-sm" data-nav="gast">Mitglied werden</a>
+        <a href="veranstaltungen.html#archiv" data-nav="mitglied" hidden>Archiv</a>
+        <a href="mitglieder.html#karte" class="btn btn-gold btn-sm" data-nav="mitglied" hidden>Karte</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ============ SEITENKOPF ============ -->
+    <section class="page-intro">
+      <div class="container">
+        <p class="eyebrow">Veranstaltungen &amp; Angebote</p>
+        <h1>Was im Netzwerk passiert.</h1>
+        <p class="lead">
+          Hier findest du unsere regelmäßigen Angebote und alle Veranstaltungen des Netzwerks –
+          von der neuesten bis zur ersten, nach Jahren geordnet.
+        </p>
+        <nav class="page-jump" aria-label="Auf dieser Seite">
+          <a href="#angebote" class="btn btn-ghost btn-sm">Angebote</a>
+          <a href="#archiv" class="btn btn-ghost btn-sm">Veranstaltungen</a>
+        </nav>
+      </div>
+    </section>
+
+    <!-- ============ ANGEBOTE ============ -->
+    <section class="section offers" id="angebote">
+      <div class="container">
+        <div class="section-head section-head--light reveal">
+          <p class="eyebrow">Unsere Angebote</p>
+          <span class="gold-line"></span>
+        </div>
+
+        <!-- TODO: Angebote prüfen, ergänzen oder entfernen -->
+        <div class="offer-grid">
+          <article class="offer reveal">
+            <h3>Berufsorientierungstag</h3>
+            <p>Ehemalige berichten an der Schule von ihrem Weg nach dem Abitur – Studium, Ausbildung, duales Studium, freiwilliges Jahr oder Ausland.</p>
+          </article>
+          <article class="offer reveal">
+            <h3>Alumni-Treffen</h3>
+            <p>Wiedersehen, Austausch und neue Kontakte über die Jahrgänge hinweg.</p>
+          </article>
+          <article class="offer reveal">
+            <h3>Mentoring</h3>
+            <p>Ehemalige stehen Schülerinnen und Schülern bei Fragen zu Studium und Beruf zur Seite.</p>
+          </article>
+          <article class="offer reveal">
+            <h3>Vorträge &amp; Einblicke</h3>
+            <p>Erfahrungen aus der Praxis – direkt an der Schule und aus erster Hand.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ARCHIV (Inhalte aus js/veranstaltungen.js) ============ -->
+    <section class="section archive" id="archiv">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Alle Veranstaltungen</p>
+          <span class="gold-line"></span>
+        </div>
+        <div class="chronik" id="chronik"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <img src="assets/logo-hell.png" alt="Netzwerk Leopoldinum" width="118" height="64" class="footer-logo">
+      <nav class="footer-nav">
+        <a href="impressum.html">Impressum</a>
+        <a href="datenschutz.html">Datenschutz</a>
+        <a href="mailto:info@netzwerk-leopoldinum.de">Kontakt</a>
+      </nav>
+      <p class="footer-copy">© <span id="year">2026</span> Netzwerk Leopoldinum</p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="assets/vendor/supabase.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/veranstaltungen-ansicht.js"></script>
+</body>
+</html>

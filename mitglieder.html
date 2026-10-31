@@ -28,12 +28,14 @@
       </button>
 
       <nav class="site-nav" id="site-nav">
-        <a href="index.html#ueber-uns">Über uns</a>
         <a href="index.html#saeulen">Unsere Säulen</a>
-        <a href="index.html#angebote">Angebote</a>
+        <a href="index.html#aktuelles">Aktuelles</a>
+        <a href="veranstaltungen.html">Veranstaltungen</a>
         <a href="index.html#vorstand">Vorstand</a>
-        <a href="mitglieder.html" class="is-active">Login</a>
-        <a href="index.html#mitmachen" class="btn btn-gold btn-sm">Mitglied werden</a>
+        <a href="mitglieder.html" class="is-active" data-nav="gast">Login</a>
+        <a href="index.html#anmelden" class="btn btn-gold btn-sm" data-nav="gast">Mitglied werden</a>
+        <a href="veranstaltungen.html#archiv" data-nav="mitglied" hidden>Archiv</a>
+        <a href="mitglieder.html#karte" class="btn btn-gold btn-sm" data-nav="mitglied" hidden>Karte</a>
       </nav>
     </div>
   </header>
@@ -109,7 +111,9 @@
           <nav class="tabs" role="tablist">
             <button type="button" role="tab" data-tab="karte" id="tab-karte">Karte</button>
             <button type="button" role="tab" data-tab="profil">Mein Profil</button>
-            <button type="button" role="tab" data-tab="vorstand" id="tab-vorstand" hidden>Freischaltungen</button>
+            <button type="button" role="tab" data-tab="vorstand" class="nur-vorstand" hidden>Freischaltungen</button>
+            <button type="button" role="tab" data-tab="kartenpunkte" class="nur-vorstand" hidden>Kartenpunkte</button>
+            <button type="button" role="tab" data-tab="veranstaltungen" class="nur-vorstand" hidden>Veranstaltungen</button>
           </nav>
 
           <div class="tab-panel" data-panel="karte">
@@ -172,6 +176,127 @@
                   <tr><th>Name</th><th>E-Mail</th><th>Angaben</th><th>Angemeldet</th><th>Status</th><th></th></tr>
                 </thead>
                 <tbody id="vorstand-liste"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Vorstand: Kartenpunkte von Hand -->
+          <div class="tab-panel" data-panel="kartenpunkte" hidden>
+            <p class="muted">Hier trägst du Personen ohne eigenes Konto auf der Mitgliederkarte ein, z.&nbsp;B. Mitglieder mit Papierantrag.
+              Bitte nur mit ihrer ausdrücklichen Einwilligung. Sichtbar sind die Punkte nur für freigeschaltete Mitglieder.</p>
+            <form id="punkt-form" class="signup-form admin-form">
+              <h2 class="form-section field--full" id="punkt-titel">Neuer Kartenpunkt</h2>
+              <div class="field">
+                <label for="k-name">Name *</label>
+                <input id="k-name" name="name" type="text" maxlength="200" required>
+              </div>
+              <div class="field">
+                <label for="k-stadt">Stadt *</label>
+                <input id="k-stadt" name="stadt" type="text" maxlength="100" placeholder="z. B. Passau" required>
+              </div>
+              <div class="field field--full">
+                <label for="k-taetigkeit">Tätigkeit</label>
+                <input id="k-taetigkeit" name="taetigkeit" type="text" maxlength="200" placeholder="z. B. „Jura in München“">
+              </div>
+              <div class="field">
+                <label for="k-kontakt-art">Kontakt auf der Karte</label>
+                <select id="k-kontakt-art" name="kontakt_art">
+                  <option value="">Keiner</option>
+                  <option value="email">E-Mail</option>
+                  <option value="telefon">Telefon</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="k-kontakt-wert">E-Mail-Adresse oder Telefonnummer</label>
+                <input id="k-kontakt-wert" name="kontakt_wert" type="text" maxlength="200">
+              </div>
+              <div class="field">
+                <label for="k-einwilligung-am">Einwilligung erteilt am *</label>
+                <input id="k-einwilligung-am" name="einwilligung_am" type="date" required>
+              </div>
+              <div class="field">
+                <label for="k-notiz">Notiz (nur für den Vorstand)</label>
+                <input id="k-notiz" name="notiz" type="text" maxlength="500" placeholder="z. B. „Papierantrag, Einwilligung schriftlich“">
+              </div>
+              <div class="field field--full field--check consent">
+                <input id="k-bestaetigung" name="bestaetigung" type="checkbox" required>
+                <label for="k-bestaetigung">Die Person hat eingewilligt, dass Name, Stadt, Tätigkeit und der angegebene Kontakt
+                  für freigeschaltete Mitglieder auf der Karte sichtbar sind. *</label>
+              </div>
+              <div class="field--full form-actions">
+                <button type="submit" class="btn btn-gold">Speichern</button>
+                <button type="button" class="btn btn-ghost" id="punkt-abbrechen" hidden>Abbrechen</button>
+                <p class="form-status" role="status" aria-live="polite"></p>
+              </div>
+            </form>
+
+            <h2 class="admin-subhead">Eingetragene Kartenpunkte</h2>
+            <div class="table-wrap">
+              <table class="members-table">
+                <thead>
+                  <tr><th>Name</th><th>Stadt</th><th>Kontakt</th><th>Einwilligung</th><th></th></tr>
+                </thead>
+                <tbody id="punkte-liste"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Vorstand: Veranstaltungen für „Aktuelles“ und das Archiv -->
+          <div class="tab-panel" data-panel="veranstaltungen" hidden>
+            <p class="muted">Unter „Aktuelles“ auf der Startseite stehen die drei neuesten Veranstaltungen mit Häkchen –
+              ein neuer Eintrag verdrängt dort also automatisch den ältesten. Im <a href="veranstaltungen.html">Archiv</a> bleiben alle Veranstaltungen sichtbar.</p>
+            <form id="event-form" class="signup-form admin-form">
+              <h2 class="form-section field--full" id="event-titel">Neue Veranstaltung</h2>
+              <div class="field">
+                <label for="v-datum">Datum *</label>
+                <input id="v-datum" name="datum" type="date" required>
+              </div>
+              <div class="field">
+                <label for="v-ort">Ort</label>
+                <input id="v-ort" name="ort" type="text" maxlength="150" placeholder="z. B. Gymnasium Leopoldinum">
+              </div>
+              <div class="field field--full">
+                <label for="v-titel">Titel *</label>
+                <input id="v-titel" name="titel" type="text" maxlength="150" required>
+              </div>
+              <div class="field field--full">
+                <label for="v-text">Kurzer Bericht oder Ankündigung * <span class="muted" id="v-text-zaehler"></span></label>
+                <textarea id="v-text" name="text" rows="4" maxlength="700" required></textarea>
+                <small class="muted">Ein Absatz, 2–4 Sätze. Erscheint auf der Startseite und im Archiv.</small>
+              </div>
+              <div class="field field--full">
+                <label for="v-mehr">Weitere Absätze (optional, nur im Archiv)</label>
+                <textarea id="v-mehr" name="mehr" rows="5" maxlength="5000"></textarea>
+                <small class="muted">Absätze mit einer Leerzeile trennen.</small>
+              </div>
+              <div class="field field--full">
+                <label for="v-medien">Bild oder Video (optional, max. 50&nbsp;MB)</label>
+                <input id="v-medien" name="medien" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm">
+                <small class="muted">Fotos mit erkennbaren Personen nur, wenn diese eingewilligt haben (Foto-Einwilligung im Antrag).</small>
+                <small class="muted" id="v-medien-aktuell" hidden></small>
+              </div>
+              <div class="field field--full field--check" id="v-entfernen-feld" hidden>
+                <input id="v-medien-entfernen" name="medien_entfernen" type="checkbox">
+                <label for="v-medien-entfernen">Vorhandenes Bild/Video entfernen</label>
+              </div>
+              <div class="field field--full field--check">
+                <input id="v-aktuell" name="aktuell" type="checkbox" checked>
+                <label for="v-aktuell">Unter „Aktuelles“ auf der Startseite zeigen</label>
+              </div>
+              <div class="field--full form-actions">
+                <button type="submit" class="btn btn-gold">Speichern</button>
+                <button type="button" class="btn btn-ghost" id="event-abbrechen" hidden>Abbrechen</button>
+                <p class="form-status" role="status" aria-live="polite"></p>
+              </div>
+            </form>
+
+            <h2 class="admin-subhead">Alle Veranstaltungen</h2>
+            <div class="table-wrap">
+              <table class="members-table">
+                <thead>
+                  <tr><th>Datum</th><th>Titel</th><th>Medien</th><th>Startseite</th><th></th></tr>
+                </thead>
+                <tbody id="events-liste"></tbody>
               </table>
             </div>
           </div>

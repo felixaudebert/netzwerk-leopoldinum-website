@@ -32,7 +32,7 @@ jobs:
 #        env:
 #          MY_ENV_VAR: value-for-my-env-var
 #          MY_SECRET_ENV_VAR: ${{ secrets.MY_SECRET }} # here you can find information how to create secrets: https://docs.github.com/en/actions/security-guides/encrypted-secrets
-        run: mkdir -p public && cp -r index.html impressum.html datenschutz.html mitglieder.html robots.txt css js assets public/
+        run: mkdir -p public && cp -r index.html veranstaltungen.html impressum.html datenschutz.html mitglieder.html robots.txt css js assets public/
 
 # Please do not touch the following action
       - name: Store deployment content

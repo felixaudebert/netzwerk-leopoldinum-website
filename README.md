@@ -5,9 +5,12 @@ Statische Webseite (HTML, CSS, etwas JavaScript), ohne Build-Schritt.
 ## Aufbau
 
 ```
-index.html        Inhalt der Seite (alle Abschnitte)
-css/styles.css    Gestaltung – Farben und Schriften oben in :root
-js/main.js        Mobiles Menü, Einblend-Animation, aktiver Menüpunkt
+index.html                    Startseite (alle Abschnitte)
+veranstaltungen.html          Angebote und alle Veranstaltungen nach Jahren
+css/styles.css                Gestaltung – Farben und Schriften oben in :root
+js/main.js                    Menü, Einblend-Animation, Portalhälften, Goldfaden
+js/veranstaltungen-ansicht.js lädt Veranstaltungen aus Supabase für „Aktuelles“ und das Archiv
+js/mitglieder.js              Mitgliederbereich inkl. Vorstand (Freischaltungen, Kartenpunkte, Veranstaltungen)
 assets/           Logo, Portal-Zeichnung, Vorstandsfotos, QR-Code
 ```
 
@@ -21,7 +24,17 @@ assets/           Logo, Portal-Zeichnung, Vorstandsfotos, QR-Code
 
 - Kontakt-E-Mail-Adresse (derzeit Platzhalter `kontakt@netzwerk-leopoldinum.de`)
 - Impressum und Datenschutz verlinken (für eine öffentliche Seite Pflicht)
-- Angebote „Alumni-Treffen“, „Mentoring“, „Vorträge & Einblicke“ prüfen
+- Angebote auf `veranstaltungen.html` prüfen
+
+## Veranstaltungen und Kartenpunkte (Vorstand)
+
+Im Mitgliederbereich (Login mit info@) gibt es dafür eigene Reiter:
+
+- **Veranstaltungen:** neue Berichte/Ankündigungen mit Bild oder Video anlegen, bearbeiten, löschen.
+  Unter „Aktuelles“ stehen die drei neuesten mit Häkchen „Startseite“; im Archiv bleiben alle.
+- **Kartenpunkte:** Personen ohne eigenes Konto (z. B. Papierantrag) mit ihrer Einwilligung auf die Karte setzen.
+
+Einmalig nötig: `supabase/06_karte_und_veranstaltungen.sql` im Supabase SQL Editor ausführen.
 
 ## Anmeldeformular (Supabase)
 
@@ -46,7 +59,7 @@ npm run dev
 | Name    | Wert      | Verwendung                 |
 |---------|-----------|----------------------------|
 | Gold    | `#c7aa62` | Linien, Akzente, Buttons   |
-| Blau    | `#495e85` | Abschnitt Angebote, Namen  |
+| Blau    | `#495e85` | Abschnitt Aktuelles, Namen |
 | Dunkel  | `#484540` | Text, Abschnitt Mitmachen  |
 | Weiß    | `#ffffff` | Hintergrund                |
 

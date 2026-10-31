@@ -27,12 +27,14 @@
       </button>
 
       <nav class="site-nav" id="site-nav">
-        <a href="index.html#ueber-uns">Über uns</a>
         <a href="index.html#saeulen">Unsere Säulen</a>
-        <a href="index.html#angebote">Angebote</a>
+        <a href="index.html#aktuelles">Aktuelles</a>
+        <a href="veranstaltungen.html">Veranstaltungen</a>
         <a href="index.html#vorstand">Vorstand</a>
-        <a href="mitglieder.html">Login</a>
-        <a href="index.html#mitmachen" class="btn btn-gold btn-sm">Mitglied werden</a>
+        <a href="mitglieder.html" data-nav="gast">Login</a>
+        <a href="index.html#anmelden" class="btn btn-gold btn-sm" data-nav="gast">Mitglied werden</a>
+        <a href="veranstaltungen.html#archiv" data-nav="mitglied" hidden>Archiv</a>
+        <a href="mitglieder.html#karte" class="btn btn-gold btn-sm" data-nav="mitglied" hidden>Karte</a>
       </nav>
     </div>
   </header>
