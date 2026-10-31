@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "live-server --port=5500"
+    "dev": "live-server --port=5500",
+    "einladen": "node --env-file=.env scripts/einladen.mjs"
   },
   "devDependencies": {
     "live-server": "^1.2.2"

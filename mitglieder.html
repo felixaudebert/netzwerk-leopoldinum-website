@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mitgliederbereich – Netzwerk Leopoldinum</title>
+  <meta name="description" content="Mitgliederbereich des Netzwerk Leopoldinum e.V.">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="assets/logo.png">
+
+  <link rel="preload" href="assets/fonts/league-spartan-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/didact-gothic-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- ============ HEADER ============ -->
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a href="index.html" class="brand" aria-label="Netzwerk Leopoldinum – zur Startseite">
+        <img src="assets/logo.png" alt="Netzwerk Leopoldinum" width="118" height="64">
+      </a>
+
+      <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">
+        <span class="sr-only">Menü</span>
+        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+      </button>
+
+      <nav class="site-nav" id="site-nav">
+        <a href="index.html#ueber-uns">Über uns</a>
+        <a href="index.html#saeulen">Unsere Säulen</a>
+        <a href="index.html#angebote">Angebote</a>
+        <a href="index.html#vorstand">Vorstand</a>
+        <a href="mitglieder.html" class="is-active">Login</a>
+        <a href="index.html#mitmachen" class="btn btn-gold btn-sm">Mitglied werden</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section members">
+      <div class="container">
+        <p class="eyebrow">Mitgliederbereich</p>
+        <span class="gold-line"></span>
+
+        <!-- Wird geladen -->
+        <div id="view-laden"><p>Wird geladen …</p></div>
+
+        <!-- Login -->
+        <div id="view-login" class="auth-box" hidden>
+          <h1>Login</h1>
+          <form id="login-form" class="stack">
+            <div class="field">
+              <label for="login-email">E-Mail</label>
+              <input id="login-email" name="email" type="email" autocomplete="email" required>
+            </div>
+            <div class="field">
+              <label for="login-passwort">Passwort</label>
+              <input id="login-passwort" name="passwort" type="password" autocomplete="current-password" required>
+            </div>
+            <button type="submit" class="btn btn-gold">Einloggen</button>
+            <p class="form-status" role="status" aria-live="polite"></p>
+          </form>
+          <p class="auth-links">
+            <button type="button" class="link-btn" id="zeige-vergessen">Passwort vergessen?</button><br>
+            Noch kein Mitglied? <a href="index.html#anmelden">Hier anmelden</a>
+          </p>
+          <form id="vergessen-form" class="stack" hidden>
+            <p>Gib deine E-Mail-Adresse ein. Wir schicken dir einen Link, mit dem du ein neues Passwort festlegen kannst.</p>
+            <div class="field">
+              <label for="vergessen-email">E-Mail</label>
+              <input id="vergessen-email" name="email" type="email" autocomplete="email" required>
+            </div>
+            <button type="submit" class="btn btn-ghost">Link senden</button>
+            <p class="form-status" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+
+        <!-- Neues Passwort (nach Einladung oder "Passwort vergessen") -->
+        <div id="view-passwort" class="auth-box" hidden>
+          <h1>Passwort festlegen</h1>
+          <form id="passwort-form" class="stack">
+            <div class="field">
+              <label for="neues-passwort">Neues Passwort (mind. 8 Zeichen)</label>
+              <input id="neues-passwort" name="passwort" type="password" autocomplete="new-password" minlength="8" required>
+            </div>
+            <div class="field">
+              <label for="neues-passwort2">Passwort wiederholen</label>
+              <input id="neues-passwort2" name="passwort2" type="password" autocomplete="new-password" minlength="8" required>
+            </div>
+            <button type="submit" class="btn btn-gold">Speichern</button>
+            <p class="form-status" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+
+        <!-- Bereich für eingeloggte Mitglieder -->
+        <div id="view-bereich" hidden>
+          <div class="members-head">
+            <h1>Hallo <span id="hallo-name"></span>!</h1>
+            <button type="button" class="btn btn-ghost btn-sm" id="abmelden">Abmelden</button>
+          </div>
+
+          <p class="notice" id="hinweis-wartend" hidden>
+            Deine Anmeldung ist eingegangen. Sobald ein Vorstandsmitglied dich freigeschaltet hat, siehst du hier die Mitgliederkarte.
+            Du kannst dein Profil schon jetzt ausfüllen.
+          </p>
+
+          <nav class="tabs" role="tablist">
+            <button type="button" role="tab" data-tab="karte" id="tab-karte">Karte</button>
+            <button type="button" role="tab" data-tab="profil">Mein Profil</button>
+            <button type="button" role="tab" data-tab="vorstand" id="tab-vorstand" hidden>Freischaltungen</button>
+          </nav>
+
+          <div class="tab-panel" data-panel="karte">
+            <p class="muted">Auf der Karte erscheinen nur Mitglieder, die dem ausdrücklich zugestimmt haben. Klicke auf einen Punkt, um Kontakt und Tätigkeit zu sehen.</p>
+            <div id="karte"></div>
+            <p class="muted" id="karte-leer" hidden>Noch niemand ist auf der Karte sichtbar.</p>
+          </div>
+
+          <div class="tab-panel" data-panel="profil" hidden>
+            <form id="profil-form" class="signup-form">
+              <div class="field">
+                <label for="p-vorname">Vorname</label>
+                <input id="p-vorname" name="vorname" type="text" maxlength="100" required>
+              </div>
+              <div class="field">
+                <label for="p-nachname">Nachname</label>
+                <input id="p-nachname" name="nachname" type="text" maxlength="100" required>
+              </div>
+              <div class="field">
+                <label for="p-email">E-Mail</label>
+                <input id="p-email" type="email" disabled>
+              </div>
+              <div class="field">
+                <label for="p-telefon">Telefon (optional)</label>
+                <input id="p-telefon" name="telefon" type="tel" maxlength="40" autocomplete="tel">
+              </div>
+              <div class="field field--full">
+                <label for="p-taetigkeit">Tätigkeit (z.&nbsp;B. „Jura in München“ oder „Ingenieurin bei BMW“)</label>
+                <input id="p-taetigkeit" name="taetigkeit" type="text" maxlength="200">
+              </div>
+              <div class="field">
+                <label for="p-stadt">Stadt</label>
+                <input id="p-stadt" name="stadt" type="text" maxlength="100" placeholder="z. B. Passau">
+              </div>
+              <fieldset class="field">
+                <legend>Auf der Karte als Kontakt zeigen</legend>
+                <label class="radio"><input type="radio" name="kontakt" value="email" checked> E-Mail</label>
+                <label class="radio"><input type="radio" name="kontakt" value="telefon"> Telefon</label>
+              </fieldset>
+              <div class="field field--full field--check consent">
+                <input id="p-auf-karte" name="auf_karte" type="checkbox">
+                <label for="p-auf-karte"><strong>Auf der Mitgliederkarte sichtbar sein.</strong>
+                  Ich willige ein, dass mein Name, meine Stadt, meine Tätigkeit und die gewählte Kontaktmöglichkeit
+                  (E-Mail oder Telefon) für andere freigeschaltete Mitglieder des Netzwerk Leopoldinum e.V. sichtbar sind.
+                  Ich kann diese Einwilligung jederzeit widerrufen, indem ich das Häkchen entferne
+                  (siehe <a href="datenschutz.html">Datenschutz</a>).</label>
+              </div>
+              <div class="field--full">
+                <button type="submit" class="btn btn-gold">Profil speichern</button>
+                <p class="form-status" role="status" aria-live="polite"></p>
+              </div>
+            </form>
+          </div>
+
+          <div class="tab-panel" data-panel="vorstand" hidden>
+            <p class="muted">Neue Anmeldungen erscheinen oben. „Freischalten“ gibt Zugang zur Mitgliederkarte.</p>
+            <div class="table-wrap">
+              <table class="members-table">
+                <thead>
+                  <tr><th>Name</th><th>E-Mail</th><th>Angaben</th><th>Angemeldet</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody id="vorstand-liste"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <img src="assets/logo-hell.png" alt="Netzwerk Leopoldinum" width="118" height="64" class="footer-logo">
+      <nav class="footer-nav">
+        <a href="impressum.html">Impressum</a>
+        <a href="datenschutz.html">Datenschutz</a>
+        <a href="mailto:info@netzwerk-leopoldinum.de">Kontakt</a>
+      </nav>
+      <p class="footer-copy">© <span id="year">2026</span> Netzwerk Leopoldinum</p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="assets/vendor/supabase.js"></script>
+  <script src="assets/vendor/leaflet/leaflet.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/mitglieder.js"></script>
+</body>
+</html>

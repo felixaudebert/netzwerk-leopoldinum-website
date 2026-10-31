@@ -1,0 +1,314 @@
+// Netzwerk Leopoldinum – Mitgliederbereich: Login, Profil, Karte, Freischaltung
+
+const sb = window.sb;
+const $ = (sel, root = document) => root.querySelector(sel);
+
+const ROLLEN = {
+  ehemalige: "Ehemalige/r",
+  schueler: "Schüler/in",
+  eltern: "Elternteil",
+  lehrkraft: "Lehrkraft",
+  sonstiges: "Sonstiges",
+};
+
+let ich = null;        // eigener Eintrag aus "mitglieder"
+let karte = null;      // Leaflet-Karte
+let markerLayer = null;
+
+// ---------- Hilfen ----------
+const zeigeView = (name) => {
+  ["laden", "login", "passwort", "bereich"].forEach((v) => {
+    $("#view-" + v).hidden = v !== name;
+  });
+};
+
+const status = (form, text, type) => {
+  const el = $(".form-status", form);
+  el.textContent = text;
+  el.className = "form-status is-" + type;
+};
+
+const el = (tag, text, cls) => {
+  const e = document.createElement(tag);
+  if (text != null) e.textContent = text;
+  if (cls) e.className = cls;
+  return e;
+};
+
+// ---------- Start ----------
+async function start() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (window.AUTH_LINK_TYP === "invite" || window.AUTH_LINK_TYP === "recovery") {
+    if (session) return zeigeView("passwort");
+  }
+  if (!session) return zeigeView("login");
+  await ladeBereich();
+}
+
+sb.auth.onAuthStateChange((event) => {
+  if (event === "PASSWORD_RECOVERY") zeigeView("passwort");
+});
+
+// ---------- Login ----------
+$("#login-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const data = new FormData(form);
+  status(form, "Einen Moment …", "info");
+  const { error } = await sb.auth.signInWithPassword({
+    email: data.get("email").trim(),
+    password: data.get("passwort"),
+  });
+  if (error) {
+    status(
+      form,
+      error.message.includes("not confirmed")
+        ? "Bitte bestätige zuerst deine E-Mail-Adresse über den Link in unserer E-Mail."
+        : "E-Mail oder Passwort ist falsch.",
+      "error"
+    );
+    return;
+  }
+  form.reset();
+  status(form, "", "info");
+  await ladeBereich();
+});
+
+$("#zeige-vergessen").addEventListener("click", () => {
+  $("#vergessen-form").hidden = false;
+  $("#vergessen-email").value = $("#login-email").value;
+  $("#vergessen-email").focus();
+});
+
+$("#vergessen-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  await sb.auth.resetPasswordForEmail($("#vergessen-email").value.trim(), {
+    redirectTo: new URL("mitglieder.html", location.href).href,
+  });
+  // Immer dieselbe Antwort, damit niemand testen kann, welche Adressen registriert sind
+  status(form, "Falls ein Konto mit dieser Adresse existiert, haben wir dir einen Link geschickt.", "success");
+});
+
+$("#passwort-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const data = new FormData(form);
+  if (data.get("passwort") !== data.get("passwort2")) {
+    status(form, "Die beiden Passwörter stimmen nicht überein.", "error");
+    return;
+  }
+  const { error } = await sb.auth.updateUser({ password: data.get("passwort") });
+  if (error) {
+    status(form, "Das hat nicht geklappt. Bitte wähle ein Passwort mit mindestens 8 Zeichen.", "error");
+    return;
+  }
+  form.reset();
+  window.AUTH_LINK_TYP = null;
+  await ladeBereich();
+});
+
+$("#abmelden").addEventListener("click", async () => {
+  await sb.auth.signOut();
+  ich = null;
+  zeigeView("login");
+});
+
+// ---------- Bereich nach dem Login ----------
+async function ladeBereich() {
+  const { data: { user } } = await sb.auth.getUser();
+  const { data, error } = await sb.from("mitglieder").select("*").eq("id", user.id).single();
+  if (error) {
+    console.error(error);
+    zeigeView("login");
+    status($("#login-form"), "Dein Konto konnte nicht geladen werden. Bitte melde dich bei info@netzwerk-leopoldinum.de.", "error");
+    return;
+  }
+  ich = data;
+  zeigeView("bereich");
+  $("#hallo-name").textContent = ich.vorname || "";
+  $("#hinweis-wartend").hidden = ich.freigeschaltet;
+  $("#tab-karte").hidden = !ich.freigeschaltet;
+  $("#tab-vorstand").hidden = !ich.ist_vorstand;
+  fuelleProfil();
+  zeigeTab(ich.freigeschaltet ? "karte" : "profil");
+}
+
+// ---------- Tabs ----------
+function zeigeTab(name) {
+  document.querySelectorAll(".tabs [data-tab]").forEach((b) => {
+    b.setAttribute("aria-selected", String(b.dataset.tab === name));
+  });
+  document.querySelectorAll(".tab-panel").forEach((p) => {
+    p.hidden = p.dataset.panel !== name;
+  });
+  if (name === "karte") ladeKarte();
+  if (name === "vorstand") ladeVorstand();
+}
+
+document.querySelectorAll(".tabs [data-tab]").forEach((b) => {
+  b.addEventListener("click", () => zeigeTab(b.dataset.tab));
+});
+
+// ---------- Profil ----------
+function fuelleProfil() {
+  const f = $("#profil-form");
+  f.vorname.value = ich.vorname || "";
+  f.nachname.value = ich.nachname || "";
+  $("#p-email").value = ich.email;
+  f.telefon.value = ich.telefon || "";
+  f.taetigkeit.value = ich.taetigkeit || "";
+  f.stadt.value = ich.stadt || "";
+  f.kontakt.value = ich.kontakt;
+  f.auf_karte.checked = ich.auf_karte;
+}
+
+// Stadt → Koordinaten (OpenStreetMap Nominatim)
+async function findeStadt(stadt) {
+  const res = await fetch(
+    "https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=de&q=" + encodeURIComponent(stadt)
+  );
+  const treffer = await res.json();
+  if (!treffer.length) return null;
+  return { lat: Number(treffer[0].lat), lng: Number(treffer[0].lon) };
+}
+
+$("#profil-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const f = e.target;
+  const neu = {
+    vorname: f.vorname.value.trim(),
+    nachname: f.nachname.value.trim(),
+    telefon: f.telefon.value.trim() || null,
+    taetigkeit: f.taetigkeit.value.trim() || null,
+    stadt: f.stadt.value.trim() || null,
+    kontakt: f.kontakt.value,
+    auf_karte: f.auf_karte.checked,
+  };
+
+  if (neu.kontakt === "telefon" && !neu.telefon) {
+    status(f, "Bitte gib eine Telefonnummer ein oder wähle E-Mail als Kontakt.", "error");
+    return;
+  }
+  if (neu.auf_karte && !neu.stadt) {
+    status(f, "Für die Karte brauchen wir deine Stadt.", "error");
+    return;
+  }
+
+  status(f, "Wird gespeichert …", "info");
+  if (neu.stadt !== ich.stadt) {
+    if (neu.stadt) {
+      const ort = await findeStadt(neu.stadt).catch(() => null);
+      if (!ort) {
+        status(f, "Diese Stadt haben wir nicht gefunden. Bitte prüfe die Schreibweise.", "error");
+        return;
+      }
+      Object.assign(neu, ort);
+    } else {
+      Object.assign(neu, { lat: null, lng: null });
+    }
+  }
+
+  const { data, error } = await sb.from("mitglieder").update(neu).eq("id", ich.id).select().single();
+  if (error) {
+    console.error(error);
+    status(f, "Speichern hat nicht geklappt. Bitte versuche es noch einmal.", "error");
+    return;
+  }
+  ich = data;
+  $("#hallo-name").textContent = ich.vorname || "";
+  status(f, "Gespeichert.", "success");
+  if (karte) ladeKarte();
+});
+
+// ---------- Karte ----------
+// Kleiner, fester Versatz pro Mitglied, damit Punkte in derselben Stadt nicht übereinander liegen
+function versatz(id) {
+  let h = 0;
+  for (const c of id) h = (h * 31 + c.charCodeAt(0)) | 0;
+  return [((h & 0xff) / 255 - 0.5) * 0.04, (((h >> 8) & 0xff) / 255 - 0.5) * 0.06];
+}
+
+function popup(m) {
+  const box = el("div", null, "map-popup");
+  box.append(el("strong", m.name));
+  if (m.taetigkeit) box.append(el("p", m.taetigkeit));
+  box.append(el("p", m.stadt, "muted"));
+  const link = el("a", m.kontakt_wert);
+  link.href = (m.kontakt_art === "telefon" ? "tel:" : "mailto:") + m.kontakt_wert;
+  box.append(link);
+  return box;
+}
+
+async function ladeKarte() {
+  if (!ich || !ich.freigeschaltet) return;
+  if (!karte) {
+    karte = L.map("karte").setView([48.57, 13.46], 5);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(karte);
+    markerLayer = L.layerGroup().addTo(karte);
+  }
+  setTimeout(() => karte.invalidateSize(), 0);
+
+  const { data, error } = await sb.rpc("mitglieder_karte");
+  if (error) {
+    console.error(error);
+    return;
+  }
+  markerLayer.clearLayers();
+  data.forEach((m) => {
+    const [dLat, dLng] = versatz(m.id);
+    L.marker([m.lat + dLat, m.lng + dLng]).bindPopup(popup(m)).addTo(markerLayer);
+  });
+  $("#karte-leer").hidden = data.length > 0;
+}
+
+// ---------- Vorstand: Freischaltungen ----------
+async function ladeVorstand() {
+  const { data, error } = await sb
+    .from("mitglieder")
+    .select("id, created_at, email, vorname, nachname, rolle, jahrgang, nachricht, freigeschaltet")
+    .order("freigeschaltet", { ascending: true })
+    .order("created_at", { ascending: false });
+  if (error) {
+    console.error(error);
+    return;
+  }
+  const tbody = $("#vorstand-liste");
+  tbody.replaceChildren();
+  data.forEach((m) => {
+    const tr = document.createElement("tr");
+    const angaben = [ROLLEN[m.rolle], m.jahrgang && "Abi " + m.jahrgang].filter(Boolean).join(", ");
+    const angabenTd = el("td", angaben || "–");
+    if (m.nachricht) angabenTd.append(el("div", "„" + m.nachricht + "“", "muted"));
+    tr.append(
+      el("td", [m.vorname, m.nachname].filter(Boolean).join(" ") || "–"),
+      el("td", m.email),
+      angabenTd,
+      el("td", new Date(m.created_at).toLocaleDateString("de-DE")),
+      el("td", m.freigeschaltet ? "Freigeschaltet" : "Wartet", m.freigeschaltet ? "badge badge--ok" : "badge badge--wait")
+    );
+    const td = document.createElement("td");
+    if (m.id !== ich.id) {
+      const btn = el("button", m.freigeschaltet ? "Sperren" : "Freischalten", "btn btn-sm " + (m.freigeschaltet ? "btn-ghost" : "btn-gold"));
+      btn.type = "button";
+      btn.addEventListener("click", async () => {
+        if (m.freigeschaltet && !confirm(`${m.vorname || m.email} wirklich sperren?`)) return;
+        btn.disabled = true;
+        const { error } = await sb.rpc("freischalten", { mitglied: m.id, wert: !m.freigeschaltet });
+        if (error) {
+          console.error(error);
+          alert("Das hat nicht geklappt.");
+        }
+        ladeVorstand();
+      });
+      td.append(btn);
+    }
+    tr.append(td);
+    tbody.append(tr);
+  });
+}
+
+start();

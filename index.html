@@ -30,6 +30,7 @@
         <a href="#saeulen">Unsere Säulen</a>
         <a href="#angebote">Angebote</a>
         <a href="#vorstand">Vorstand</a>
+        <a href="mitglieder.html">Login</a>
         <a href="#mitmachen" class="btn btn-gold btn-sm">Mitglied werden</a>
       </nav>
     </div>
@@ -269,6 +270,14 @@
             <label for="jahrgang">Abiturjahrgang</label>
             <input id="jahrgang" name="jahrgang" type="number" min="1900" max="2100" inputmode="numeric">
           </div>
+          <div class="field">
+            <label for="passwort">Passwort für den Mitgliederbereich *</label>
+            <input id="passwort" name="passwort" type="password" autocomplete="new-password" minlength="8" required>
+          </div>
+          <div class="field">
+            <label for="passwort2">Passwort wiederholen *</label>
+            <input id="passwort2" name="passwort2" type="password" autocomplete="new-password" minlength="8" required>
+          </div>
           <div class="field field--full">
             <label for="nachricht">Nachricht (optional)</label>
             <textarea id="nachricht" name="nachricht" rows="4" maxlength="2000"></textarea>
@@ -309,7 +318,9 @@
   </footer>
 
   <script src="js/main.js"></script>
+  <script src="assets/vendor/supabase.js"></script>
   <script src="js/config.js"></script>
+  <script src="js/supabase-client.js"></script>
   <script src="js/anmeldung.js"></script>
 </body>
 </html>
