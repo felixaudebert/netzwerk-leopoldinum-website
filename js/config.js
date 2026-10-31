@@ -4,6 +4,6 @@
 // Schlüssel eintragen – NIEMALS den "service_role"/"secret" Schlüssel.
 
 window.SUPABASE_CONFIG = {
-  url: "https://DEIN-PROJEKT.supabase.co",
-  anonKey: "DEIN-ANON-KEY",
+  url: "https://tjvjufyftfracjftfkdv.supabase.co",
+  anonKey: "sb_publishable_cQwTs1a96nFUhu_WJfE-6Q_up8TX0LA",
 };
