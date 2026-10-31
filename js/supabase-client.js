@@ -1,7 +1,8 @@
 // Netzwerk Leopoldinum – gemeinsame Supabase-Verbindung (Login + Datenbank)
 
 // Links aus E-Mails (Einladung, Bestätigung, Passwort) landen teils auf der Startseite → weiter zum Mitgliederbereich
-if (/access_token|error_description/.test(location.hash) && !location.pathname.endsWith("mitglieder.html")) {
+const imMitgliederbereich = location.pathname.endsWith("mitglieder.html");
+if (/access_token|error_description/.test(location.hash) && !imMitgliederbereich) {
   location.replace("mitglieder.html" + location.hash);
 }
 
@@ -9,4 +10,6 @@ if (/access_token|error_description/.test(location.hash) && !location.pathname.e
 window.AUTH_LINK_TYP = new URLSearchParams(location.hash.slice(1)).get("type");
 
 const { url, anonKey } = window.SUPABASE_CONFIG;
-window.sb = window.supabase.createClient(url, anonKey);
+window.sb = window.supabase.createClient(url, anonKey, {
+  auth: { detectSessionInUrl: imMitgliederbereich },
+});
