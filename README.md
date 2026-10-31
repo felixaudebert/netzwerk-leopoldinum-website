@@ -2,6 +2,8 @@
 
 Statische Webseite (HTML, CSS, etwas JavaScript), ohne Build-Schritt.
 
+**Neu im Projekt?** Zuerst [UEBERGABE.md](UEBERGABE.md) lesen – Zugänge, Dienste, Abläufe und offene Punkte.
+
 ## Aufbau
 
 ```
