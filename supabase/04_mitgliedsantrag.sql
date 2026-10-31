@@ -42,6 +42,7 @@ declare
   geb date;
   alter_jahre int;
   beitrag numeric;
+  mindestbeitrag numeric;
   iban_klar text;
 begin
   insert into public.mitglieder (id, email, vorname, nachname, rolle, jahrgang, nachricht, taetigkeit, stadt, mindestens16, einwilligung)
@@ -68,7 +69,8 @@ begin
       raise exception 'Mitglied muss mindestens 16 Jahre alt sein.';
     end if;
     beitrag := (m->>'beitrag_euro')::numeric;
-    if beitrag < case when alter_jahre <= 30 then 5 else 25 end then
+    mindestbeitrag := case when alter_jahre <= 30 then 5 else 25 end;
+    if beitrag < mindestbeitrag then
       raise exception 'Beitrag liegt unter dem Mindestbeitrag.';
     end if;
     if not coalesce((m->>'sepa_mandat')::boolean, false) then
