@@ -28,6 +28,7 @@ form.addEventListener("submit", async (event) => {
     rolle: data.get("rolle"),
     jahrgang: data.get("jahrgang") ? Number(data.get("jahrgang")) : null,
     nachricht: data.get("nachricht").trim() || null,
+    mindestens16: data.get("mindestens16") === "on",
     einwilligung: data.get("einwilligung") === "on",
   };
 

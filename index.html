@@ -226,8 +226,7 @@
             <h3>Vorstandswahl 2027</h3>
             <p>2027 wird der Vorstand des Netzwerks neu gewählt.</p>
             <p>Du möchtest das Netzwerk mitgestalten? Dann bring dich ein – sprich uns gerne an!</p>
-            <!-- TODO: Kontaktadresse eintragen -->
-            <a href="mailto:kontakt@netzwerk-leopoldinum.de" class="btn btn-ghost-light">Kontakt aufnehmen</a>
+            <a href="mailto:info@netzwerk-leopoldinum.de" class="btn btn-ghost-light">Kontakt aufnehmen</a>
           </div>
         </div>
       </div>
@@ -275,9 +274,12 @@
             <textarea id="nachricht" name="nachricht" rows="4" maxlength="2000"></textarea>
           </div>
           <div class="field field--full field--check">
+            <input id="mindestens16" name="mindestens16" type="checkbox" required>
+            <label for="mindestens16">Ich bin mindestens 16 Jahre alt. *</label>
+          </div>
+          <div class="field field--full field--check">
             <input id="einwilligung" name="einwilligung" type="checkbox" required>
-            <!-- TODO: Link zur Datenschutzerklärung eintragen -->
-            <label for="einwilligung">Ich bin einverstanden, dass meine Angaben zur Bearbeitung der Anmeldung gespeichert werden (siehe <a href="#">Datenschutz</a>). *</label>
+            <label for="einwilligung">Ich bin einverstanden, dass meine Angaben zur Bearbeitung der Anmeldung gespeichert werden (siehe <a href="datenschutz.html">Datenschutz</a>). *</label>
           </div>
           <div class="hp" aria-hidden="true">
             <label for="website">Website</label>
@@ -298,10 +300,9 @@
     <div class="container footer-inner">
       <img src="assets/logo-hell.png" alt="Netzwerk Leopoldinum" width="118" height="64" class="footer-logo">
       <nav class="footer-nav">
-        <!-- TODO: Impressum und Datenschutz verlinken -->
-        <a href="#">Impressum</a>
-        <a href="#">Datenschutz</a>
-        <a href="mailto:kontakt@netzwerk-leopoldinum.de">Kontakt</a>
+        <a href="impressum.html">Impressum</a>
+        <a href="datenschutz.html">Datenschutz</a>
+        <a href="mailto:info@netzwerk-leopoldinum.de">Kontakt</a>
       </nav>
       <p class="footer-copy">© <span id="year">2026</span> Netzwerk Leopoldinum</p>
     </div>
