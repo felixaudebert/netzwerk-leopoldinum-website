@@ -50,7 +50,7 @@ npm run dev
 | Dunkel  | `#484540` | Text, Abschnitt Mitmachen  |
 | Weiß    | `#ffffff` | Hintergrund                |
 
-Schriften: League Spartan (Überschriften) und Didact Gothic (Text), über Google Fonts.
+Schriften: League Spartan (Überschriften) und Didact Gothic (Text), lokal in `assets/fonts/` (keine Verbindung zu Google).
 
 ## Veröffentlichen
 
