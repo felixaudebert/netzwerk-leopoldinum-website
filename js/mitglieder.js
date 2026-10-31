@@ -134,6 +134,7 @@ async function ladeBereich() {
   $("#hinweis-wartend").hidden = ich.darfKarte;
   $("#tab-karte").hidden = !ich.darfKarte;
   $("#tab-vorstand").hidden = !ich.vorstand;
+  $('[data-tab="profil"]').hidden = ich.vorstand;
   fuelleProfil();
   zeigeTab(ich.vorstand ? "vorstand" : ich.darfKarte ? "karte" : "profil");
 }
@@ -282,7 +283,16 @@ async function ladeVorstand() {
   }
   const tbody = $("#vorstand-liste");
   tbody.replaceChildren();
-  data.forEach((m) => {
+  // Das Vorstandskonto selbst nicht in der Liste zeigen
+  const liste = data.filter((m) => m.id !== ich.id);
+  if (!liste.length) {
+    const tr = document.createElement("tr");
+    const td = el("td", "Noch keine Mitglieder.", "muted");
+    td.colSpan = 6;
+    tr.append(td);
+    tbody.append(tr);
+  }
+  liste.forEach((m) => {
     const tr = document.createElement("tr");
     const angaben = [ROLLEN[m.rolle], m.jahrgang && "Abi " + m.jahrgang].filter(Boolean).join(", ");
     const angabenTd = el("td", angaben || "–");
