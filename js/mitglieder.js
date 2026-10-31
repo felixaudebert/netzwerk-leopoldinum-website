@@ -125,13 +125,17 @@ async function ladeBereich() {
     return;
   }
   ich = data;
+  // Vorstandsrechte hat nur das Konto info@ – das entscheidet die Datenbank
+  const { data: vorstand } = await sb.rpc("ist_vorstand");
+  ich.vorstand = vorstand === true;
+  ich.darfKarte = ich.freigeschaltet || ich.vorstand;
   zeigeView("bereich");
-  $("#hallo-name").textContent = ich.vorname || "";
-  $("#hinweis-wartend").hidden = ich.freigeschaltet;
-  $("#tab-karte").hidden = !ich.freigeschaltet;
-  $("#tab-vorstand").hidden = !ich.ist_vorstand;
+  $("#hallo-name").textContent = ich.vorstand ? "Vorstand" : ich.vorname || "";
+  $("#hinweis-wartend").hidden = ich.darfKarte;
+  $("#tab-karte").hidden = !ich.darfKarte;
+  $("#tab-vorstand").hidden = !ich.vorstand;
   fuelleProfil();
-  zeigeTab(ich.freigeschaltet ? "karte" : "profil");
+  zeigeTab(ich.vorstand ? "vorstand" : ich.darfKarte ? "karte" : "profil");
 }
 
 // ---------- Tabs ----------
@@ -241,7 +245,7 @@ function popup(m) {
 }
 
 async function ladeKarte() {
-  if (!ich || !ich.freigeschaltet) return;
+  if (!ich || !ich.darfKarte) return;
   if (!karte) {
     karte = L.map("karte").setView([48.57, 13.46], 5);
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
