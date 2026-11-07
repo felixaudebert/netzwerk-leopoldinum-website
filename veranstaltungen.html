@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Veranstaltungen &amp; Angebote – Netzwerk Leopoldinum</title>
-  <meta name="description" content="Alle Veranstaltungen und Angebote des Netzwerk Leopoldinum e.V. – nach Jahren geordnet.">
+  <title>Archiv – Netzwerk Leopoldinum</title>
+  <meta name="description" content="Alle Veranstaltungen des Netzwerk Leopoldinum e.V. – nach Jahren geordnet.">
   <!-- TODO vor dem Start entfernen: Suchmaschinen sollen die Seite noch nicht anzeigen -->
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" href="assets/logo.png">
@@ -28,14 +28,18 @@
       </button>
 
       <nav class="site-nav" id="site-nav">
-        <a href="index.html#saeulen">Unsere Säulen</a>
-        <a href="index.html#aktuelles">Aktuelles</a>
-        <a href="veranstaltungen.html" class="is-active">Veranstaltungen</a>
-        <a href="index.html#vorstand">Vorstand</a>
-        <a href="mitglieder.html" data-nav="gast">Login</a>
+        <a href="index.html#saeulen" data-nav="gast">Unsere Säulen</a>
+        <a href="index.html#aktuelles" data-nav="gast">Aktuelles</a>
+        <a data-nav="gast" href="veranstaltungen.html" class="is-active">Veranstaltungen</a>
+        <a href="index.html#vorstand" data-nav="gast">Vorstand</a>
+        <a href="mitglieder.html" class="btn btn-blue btn-sm" data-nav="gast">Mitgliederbereich</a>
         <a href="index.html#anmelden" class="btn btn-gold btn-sm" data-nav="gast">Mitglied werden</a>
-        <a href="veranstaltungen.html#archiv" data-nav="mitglied" hidden>Archiv</a>
-        <a href="mitglieder.html#karte" class="btn btn-gold btn-sm" data-nav="mitglied" hidden>Karte</a>
+        <!-- Nach dem Login: nur noch die Mitglieder-Reiter -->
+        <a href="mitglieder.html#karte" data-nav="mitglied" hidden>Karte</a>
+        <a href="leo-kalender.html" data-nav="mitglied" hidden>Leo Kalender</a>
+        <a href="veranstaltungen.html" class="is-active" data-nav="mitglied" hidden>Archiv</a>
+        <a href="mitglieder.html#profil" class="btn btn-gold btn-sm" data-nav="mitglied" hidden>Mein Profil</a>
+        <button type="button" class="btn btn-ghost btn-sm" data-nav="mitglied" data-abmelden hidden>Abmelden</button>
       </nav>
     </div>
   </header>
@@ -45,57 +49,113 @@
     <!-- ============ SEITENKOPF ============ -->
     <section class="page-intro">
       <div class="container">
-        <p class="eyebrow">Veranstaltungen &amp; Angebote</p>
-        <h1>Was im Netzwerk passiert.</h1>
+        <p class="eyebrow">Archiv</p>
+        <h1>Aus dem Leben am Leopoldinum.</h1>
         <p class="lead">
-          Hier findest du unsere regelmäßigen Angebote und alle Veranstaltungen des Netzwerks –
-          von der neuesten bis zur ersten, nach Jahren geordnet.
+          Veranstaltungen des Netzwerks, Jahresberichte und Fotos –
+          was am Leopoldinum passiert und was hier über die Jahre passiert ist.
         </p>
-        <nav class="page-jump" aria-label="Auf dieser Seite">
-          <a href="#angebote" class="btn btn-ghost btn-sm">Angebote</a>
-          <a href="#archiv" class="btn btn-ghost btn-sm">Veranstaltungen</a>
-        </nav>
       </div>
     </section>
 
-    <!-- ============ ANGEBOTE ============ -->
-    <section class="section offers" id="angebote">
-      <div class="container">
-        <div class="section-head section-head--light reveal">
-          <p class="eyebrow">Unsere Angebote</p>
-          <span class="gold-line"></span>
-        </div>
-
-        <!-- TODO: Angebote prüfen, ergänzen oder entfernen -->
-        <div class="offer-grid">
-          <article class="offer reveal">
-            <h3>Berufsorientierungstag</h3>
-            <p>Ehemalige berichten an der Schule von ihrem Weg nach dem Abitur – Studium, Ausbildung, duales Studium, freiwilliges Jahr oder Ausland.</p>
-          </article>
-          <article class="offer reveal">
-            <h3>Alumni-Treffen</h3>
-            <p>Wiedersehen, Austausch und neue Kontakte über die Jahrgänge hinweg.</p>
-          </article>
-          <article class="offer reveal">
-            <h3>Mentoring</h3>
-            <p>Ehemalige stehen Schülerinnen und Schülern bei Fragen zu Studium und Beruf zur Seite.</p>
-          </article>
-          <article class="offer reveal">
-            <h3>Vorträge &amp; Einblicke</h3>
-            <p>Erfahrungen aus der Praxis – direkt an der Schule und aus erster Hand.</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ ARCHIV (Inhalte aus js/veranstaltungen.js) ============ -->
+    <!-- ============ ARCHIV mit Reitern (Umschalten in js/main.js) ============ -->
     <section class="section archive" id="archiv">
       <div class="container">
-        <div class="section-head reveal">
-          <p class="eyebrow">Alle Veranstaltungen</p>
-          <span class="gold-line"></span>
+        <nav class="tabs" role="tablist" aria-label="Archiv">
+          <button type="button" role="tab" id="tab-veranstaltungen" aria-controls="panel-veranstaltungen" data-archiv-tab="veranstaltungen" aria-selected="true">Veranstaltungen</button>
+          <button type="button" role="tab" id="tab-jahresberichte" aria-controls="panel-jahresberichte" data-archiv-tab="jahresberichte" aria-selected="false" title="Nur für Mitglieder" data-nur-mitglieder-tab>Jahresberichte <svg class="tab-schloss" data-schloss viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span class="sr-only" data-schloss> (nur für Mitglieder)</span></button>
+          <button type="button" role="tab" id="tab-fotoarchiv" aria-controls="panel-fotoarchiv" data-archiv-tab="fotoarchiv" aria-selected="false" title="Nur für Mitglieder" data-nur-mitglieder-tab>Fotoarchiv <svg class="tab-schloss" data-schloss viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span class="sr-only" data-schloss> (nur für Mitglieder)</span></button>
+        </nav>
+
+        <!-- Veranstaltungen (Inhalte aus js/veranstaltungen-ansicht.js) -->
+        <div role="tabpanel" id="panel-veranstaltungen" aria-labelledby="tab-veranstaltungen" data-archiv-panel="veranstaltungen">
+          <div class="chronik" id="chronik"></div>
         </div>
-        <div class="chronik" id="chronik"></div>
+
+        <!-- Nur für freigeschaltete Mitglieder: Inhalt oder Hinweis setzt js/archiv-zugang.js.
+             Die Daten selbst schützt zusätzlich die Datenbank (supabase/08_jahresberichte.sql). -->
+        <!-- Jahresberichte (Inhalte aus js/archiv-zugang.js) -->
+        <div role="tabpanel" id="panel-jahresberichte" aria-labelledby="tab-jahresberichte" data-archiv-panel="jahresberichte" data-nur-mitglieder="Jahresberichte" hidden>
+          <div class="chronik" id="jahresberichte-liste" data-mitglieder-inhalt hidden></div>
+        </div>
+
+        <!-- Fotoarchiv nach Abiturjahrgängen (Inhalte aus js/fotoarchiv.js) -->
+        <div role="tabpanel" id="panel-fotoarchiv" aria-labelledby="tab-fotoarchiv" data-archiv-panel="fotoarchiv" data-nur-mitglieder="Fotos" hidden>
+          <div id="fotoarchiv" class="fotoarchiv" data-mitglieder-inhalt hidden>
+
+            <!-- Übersicht: alle Abiturjahrgänge -->
+            <div id="fa-uebersicht">
+              <div class="fa-kopf">
+                <p class="muted">Fotos nach Abiturjahrgang – klicke auf einen Jahrgang, um seine Fotos zu sehen.</p>
+                <button type="button" class="btn btn-gold btn-sm" id="fa-hochladen-oben" data-fa-hochladen hidden>+ Fotos hochladen</button>
+              </div>
+              <div class="fa-jahrgaenge" id="fa-jahrgaenge"></div>
+            </div>
+
+            <!-- Ein Jahrgang -->
+            <div id="fa-detail" hidden>
+              <button type="button" class="fa-zurueck" id="fa-zurueck">← Alle Jahrgänge</button>
+              <div class="section-head year-head">
+                <h2 class="year-label" id="fa-titel"></h2>
+                <span class="gold-line is-drawn"></span>
+              </div>
+              <div class="fa-klassenfoto" id="fa-klassenfoto" hidden></div>
+              <div class="fa-leiste">
+                <nav class="tabs" role="tablist" aria-label="Kategorie">
+                  <button type="button" role="tab" data-fa-kat="abiturfeier" aria-selected="true">Abiturfeier</button>
+                  <button type="button" role="tab" data-fa-kat="abiturfahrt" aria-selected="false">Abiturfahrt</button>
+                  <button type="button" role="tab" data-fa-kat="sonstiges" aria-selected="false">Sonstiges</button>
+                </nav>
+                <button type="button" class="btn btn-gold btn-sm" data-fa-hochladen>+ Fotos hochladen</button>
+              </div>
+              <div class="fa-galerie" id="fa-galerie"></div>
+            </div>
+
+            <!-- Fotos hochladen -->
+            <dialog class="fa-dialog" id="fa-dialog" aria-labelledby="fa-dialog-titel">
+              <form id="fa-form" class="stack">
+                <h2 id="fa-dialog-titel">Fotos hochladen</h2>
+                <div class="field">
+                  <label for="fa-jahrgang">Abiturjahrgang</label>
+                  <select id="fa-jahrgang" name="jahrgang" required></select>
+                </div>
+                <div class="field">
+                  <label for="fa-kategorie">Kategorie</label>
+                  <select id="fa-kategorie" name="kategorie" required>
+                    <option value="abiturfeier">Abiturfeier</option>
+                    <option value="abiturfahrt">Abiturfahrt</option>
+                    <option value="sonstiges">Sonstiges</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="fa-dateien">Fotos (bis zu 50 auf einmal)</label>
+                  <input id="fa-dateien" name="dateien" type="file" accept="image/*" multiple required>
+                  <small class="muted">Die Fotos werden vor dem Hochladen verkleinert; Standortdaten werden dabei entfernt.</small>
+                </div>
+                <div class="field field--check">
+                  <input id="fa-rechte" name="rechte" type="checkbox" required>
+                  <label for="fa-rechte">Ich darf diese Fotos weitergeben, und die erkennbar abgebildeten Personen sind damit
+                    einverstanden, dass sie im Mitgliederbereich gezeigt werden.</label>
+                </div>
+                <p class="notice" id="fa-hinweis-freigabe">Deine Fotos sind erst für alle Mitglieder sichtbar, wenn der Vorstand sie freigegeben hat.</p>
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-gold">Hochladen</button>
+                  <button type="button" class="btn btn-ghost" id="fa-abbrechen">Schließen</button>
+                  <p class="form-status" role="status" aria-live="polite"></p>
+                </div>
+              </form>
+            </dialog>
+
+            <!-- Großansicht -->
+            <dialog class="fa-lightbox" id="fa-lightbox" aria-label="Foto">
+              <img id="fa-lb-bild" alt="">
+              <button type="button" class="fa-lb-knopf fa-lb-zurueck" id="fa-lb-zurueck" aria-label="Vorheriges Foto">‹</button>
+              <button type="button" class="fa-lb-knopf fa-lb-weiter" id="fa-lb-weiter" aria-label="Nächstes Foto">›</button>
+              <button type="button" class="fa-lb-knopf fa-lb-schliessen" id="fa-lb-schliessen" aria-label="Schließen">×</button>
+              <p class="fa-lb-zaehler" id="fa-lb-zaehler"></p>
+            </dialog>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -119,5 +179,8 @@
   <script src="js/config.js"></script>
   <script src="js/supabase-client.js"></script>
   <script src="js/veranstaltungen-ansicht.js"></script>
+  <script src="js/archiv-zugang.js"></script>
+  <script src="js/bild-verkleinern.js"></script>
+  <script src="js/fotoarchiv.js"></script>
 </body>
 </html>

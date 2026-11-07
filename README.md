@@ -35,6 +35,14 @@ Im Mitgliederbereich (Login mit info@) gibt es dafür eigene Reiter:
 - **Veranstaltungen:** neue Berichte/Ankündigungen mit Bild oder Video anlegen, bearbeiten, löschen.
   Unter „Aktuelles“ stehen die drei neuesten mit Häkchen „Startseite“; im Archiv bleiben alle.
 - **Kartenpunkte:** Personen ohne eigenes Konto (z. B. Papierantrag) mit ihrer Einwilligung auf die Karte setzen.
+- **Jahresberichte:** pro Jahr ein PDF hochladen, ersetzen oder löschen. Erscheint im Archiv unter „Jahresberichte“ –
+  sichtbar nur für freigeschaltete Mitglieder (einmalig `supabase/08_jahresberichte.sql` ausführen).
+- **Fotoarchiv:** Abiturjahrgänge mit Klassenfoto anlegen und von Mitgliedern hochgeladene Fotos freigeben oder ablehnen.
+  Mitglieder laden im Archiv unter „Fotoarchiv“ hoch; info@ bekommt bei jedem Upload eine E-Mail
+  (einmalig `supabase/09_fotoarchiv.sql` ausführen und `supabase functions deploy foto-mail --no-verify-jwt`).
+- **Leo-Kalender:** Termine am Leopoldinum eintragen, bearbeiten, löschen. Ferien und Feiertage des laufenden
+  bayerischen Schuljahrs kommen automatisch (einmalig `supabase/10_leo_kalender.sql` ausführen und
+  `supabase functions deploy schulkalender --no-verify-jwt`).
 
 Einmalig nötig: `supabase/06_karte_und_veranstaltungen.sql` im Supabase SQL Editor ausführen.
 

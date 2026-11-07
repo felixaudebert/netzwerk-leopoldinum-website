@@ -90,6 +90,17 @@ Nicht geheim (stehen bewusst im Code): Supabase-Adresse und der öffentliche „
 - Versand über `smtp.ionos.de`, Port 465 (SSL), Absender und Empfänger info@
 - Bereitgestellt mit der Supabase CLI: `supabase functions deploy antrag-mail` (Projekt ist lokal verknüpft, siehe `supabase/.temp/`)
 
+### Edge Function `foto-mail`
+- Code: `supabase/functions/foto-mail/index.ts` – meldet neu hochgeladene Fotos (eine E-Mail pro Upload) an info@
+- Wird von der Datenbankfunktion `fotos_einreichen` aufgerufen; nutzt **dieselben** Secrets wie `antrag-mail` (`ANTRAG_SECRET`, `SMTP_PASS`, Vault `antrag_mail_secret`)
+- Bereitstellen: `supabase functions deploy foto-mail --no-verify-jwt`
+
+### Edge Function `schulkalender`
+- Code: `supabase/functions/schulkalender/index.ts` – liefert Ferien und Feiertage des **laufenden bayerischen Schuljahrs** (1.8.–31.7.) für den Leo-Kalender
+- Quelle: OpenHolidays API (openholidaysapi.org); die Funktion fragt dort an, damit die Browser der Mitglieder keine Verbindung zu einem fremden Dienst aufbauen
+- Keine Secrets nötig, wechselt jedes Jahr am 1. August automatisch ins neue Schuljahr
+- Bereitstellen: `supabase functions deploy schulkalender --no-verify-jwt`
+
 ### SQL-Skripte (im SQL Editor ausgeführt, in dieser Reihenfolge)
 
 | Skript | Inhalt | Ausgeführt am |
@@ -100,6 +111,10 @@ Nicht geheim (stehen bewusst im Code): Supabase-Adresse und der öffentliche „
 | `04_mitgliedsantrag.sql` | vollständiger Antrag inkl. SEPA | ☐ |
 | `05_vorstand_und_benachrichtigung.sql` | Vorstand nur info@, Antrags-Mail | ☐ |
 | `06_karte_und_veranstaltungen.sql` | Kartenpunkte von Hand, Veranstaltungen, Speicher | ☐ |
+| `07_karriereschritte.sql` | Vorherige Karriereschritte im Profil und auf der Karte | ☐ |
+| `08_jahresberichte.sql` | Jahresberichte (PDF pro Jahr) im Archiv, Speicher | ☐ |
+| `09_fotoarchiv.sql` | Fotoarchiv nach Abiturjahrgängen, Freigabe, E-Mail an info@ | ☐ |
+| `10_leo_kalender.sql` | Termine am Leopoldinum für den Leo-Kalender | ☐ |
 
 Alle Skripte können gefahrlos erneut ausgeführt werden.
 

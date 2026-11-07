@@ -17,7 +17,7 @@ nav.querySelectorAll("a").forEach((link) => {
   });
 });
 
-// Eingeloggt? Dann statt „Login“ und „Mitglied werden“ Archiv und Karte zeigen.
+// Eingeloggt? Dann statt der öffentlichen Reiter nur Karte, Leo Kalender und Archiv zeigen.
 // Supabase merkt sich die Anmeldung im Browser unter "sb-<projekt>-auth-token".
 window.navAktualisieren = () => {
   let eingeloggt = false;
@@ -27,8 +27,32 @@ window.navAktualisieren = () => {
   nav.querySelectorAll("[data-nav]").forEach((a) => {
     a.hidden = (a.dataset.nav === "mitglied") !== eingeloggt;
   });
+  // z. B. für die Schlösser an „Jahresberichte“/„Fotoarchiv“ im Archiv (nur für Gäste sichtbar)
+  document.documentElement.classList.toggle("ist-eingeloggt", eingeloggt);
+  // Das Vorstandskonto hat kein eigenes Profil (setzt mitglieder.js)
+  if (window.navOhneProfil) {
+    nav.querySelectorAll('a[href="mitglieder.html#profil"]').forEach((a) => (a.hidden = true));
+  }
 };
 window.navAktualisieren();
+
+// „Abmelden“ im Header – auf jeder Seite, für Mitglieder und Vorstand
+nav.querySelectorAll("[data-abmelden]").forEach((knopf) => {
+  knopf.addEventListener("click", async () => {
+    knopf.disabled = true;
+    try {
+      if (window.sb) await window.sb.auth.signOut();
+    } catch (e) {
+      console.error(e);
+    }
+    // Seiten ohne Supabase-Verbindung (Impressum, Datenschutz): Anmeldung im Browser löschen
+    try {
+      Object.keys(localStorage).filter((k) => /^sb-.+-auth-token$/.test(k)).forEach((k) => localStorage.removeItem(k));
+    } catch {}
+    window.navOhneProfil = false;
+    location.href = "index.html";
+  });
+});
 
 // Header-Schatten beim Scrollen
 const header = document.querySelector(".site-header");
@@ -116,3 +140,21 @@ sections.forEach((s) => s && spy.observe(s));
 
 // Jahr im Footer
 document.getElementById("year").textContent = new Date().getFullYear();
+
+// Archiv-Seite: Reiter Veranstaltungen / Jahresberichte / Fotoarchiv
+// (auch direkt verlinkbar, z. B. veranstaltungen.html#fotoarchiv)
+const archivTabs = document.querySelectorAll("[data-archiv-tab]");
+if (archivTabs.length) {
+  const zeigeArchiv = (name, merken) => {
+    archivTabs.forEach((b) => b.setAttribute("aria-selected", String(b.dataset.archivTab === name)));
+    document.querySelectorAll("[data-archiv-panel]").forEach((p) => (p.hidden = p.dataset.archivPanel !== name));
+    if (merken) history.replaceState(null, "", "#" + name);
+  };
+  const ausHash = () => {
+    const name = location.hash.slice(1);
+    if ([...archivTabs].some((b) => b.dataset.archivTab === name)) zeigeArchiv(name);
+  };
+  archivTabs.forEach((b) => b.addEventListener("click", () => zeigeArchiv(b.dataset.archivTab, true)));
+  window.addEventListener("hashchange", ausHash);
+  ausHash();
+}

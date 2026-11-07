@@ -28,14 +28,18 @@
       </button>
 
       <nav class="site-nav" id="site-nav">
-        <a href="index.html#saeulen">Unsere Säulen</a>
-        <a href="index.html#aktuelles">Aktuelles</a>
-        <a href="veranstaltungen.html">Veranstaltungen</a>
-        <a href="index.html#vorstand">Vorstand</a>
-        <a href="mitglieder.html" class="is-active" data-nav="gast">Login</a>
+        <a href="index.html#saeulen" data-nav="gast">Unsere Säulen</a>
+        <a href="index.html#aktuelles" data-nav="gast">Aktuelles</a>
+        <a href="veranstaltungen.html" data-nav="gast">Veranstaltungen</a>
+        <a href="index.html#vorstand" data-nav="gast">Vorstand</a>
+        <a href="mitglieder.html" class="btn btn-blue btn-sm is-active" data-nav="gast">Mitgliederbereich</a>
         <a href="index.html#anmelden" class="btn btn-gold btn-sm" data-nav="gast">Mitglied werden</a>
-        <a href="veranstaltungen.html#archiv" data-nav="mitglied" hidden>Archiv</a>
-        <a href="mitglieder.html#karte" class="btn btn-gold btn-sm" data-nav="mitglied" hidden>Karte</a>
+        <!-- Nach dem Login: nur noch die Mitglieder-Reiter -->
+        <a href="mitglieder.html#karte" data-nav="mitglied" hidden>Karte</a>
+        <a href="leo-kalender.html" data-nav="mitglied" hidden>Leo Kalender</a>
+        <a href="veranstaltungen.html" data-nav="mitglied" hidden>Archiv</a>
+        <a href="mitglieder.html#profil" class="btn btn-gold btn-sm" data-nav="mitglied" hidden>Mein Profil</a>
+        <button type="button" class="btn btn-ghost btn-sm" data-nav="mitglied" data-abmelden hidden>Abmelden</button>
       </nav>
     </div>
   </header>
@@ -100,7 +104,6 @@
         <div id="view-bereich" hidden>
           <div class="members-head">
             <h1>Hallo <span id="hallo-name"></span>!</h1>
-            <button type="button" class="btn btn-ghost btn-sm" id="abmelden">Abmelden</button>
           </div>
 
           <p class="notice" id="hinweis-wartend" hidden>
@@ -110,15 +113,21 @@
 
           <nav class="tabs" role="tablist">
             <button type="button" role="tab" data-tab="karte" id="tab-karte">Karte</button>
-            <button type="button" role="tab" data-tab="profil">Mein Profil</button>
             <button type="button" role="tab" data-tab="vorstand" class="nur-vorstand" hidden>Freischaltungen</button>
             <button type="button" role="tab" data-tab="kartenpunkte" class="nur-vorstand" hidden>Kartenpunkte</button>
             <button type="button" role="tab" data-tab="veranstaltungen" class="nur-vorstand" hidden>Veranstaltungen</button>
+            <button type="button" role="tab" data-tab="jahresberichte" class="nur-vorstand" hidden>Jahresberichte</button>
+            <button type="button" role="tab" data-tab="fotoarchiv" class="nur-vorstand" id="tab-fotoarchiv-vorstand" hidden>Fotoarchiv</button>
+            <button type="button" role="tab" data-tab="leotermine" class="nur-vorstand" hidden>Leo-Kalender</button>
           </nav>
 
           <div class="tab-panel" data-panel="karte">
             <p class="muted">Auf der Karte erscheinen nur Mitglieder, die dem ausdrücklich zugestimmt haben. Klicke auf einen Punkt, um Kontakt und Tätigkeit zu sehen.</p>
             <div id="karte"></div>
+            <p class="karte-legende">
+              <span><span class="pin pin--aktuell" aria-hidden="true"></span> Aktueller Standort</span>
+              <span><span class="pin pin--frueher" aria-hidden="true"></span> Vorherige Karriereschritte</span>
+            </p>
             <p class="muted" id="karte-leer" hidden>Noch niemand ist auf der Karte sichtbar.</p>
           </div>
 
@@ -141,11 +150,11 @@
                 <input id="p-telefon" name="telefon" type="tel" maxlength="40" autocomplete="tel">
               </div>
               <div class="field field--full">
-                <label for="p-taetigkeit">Tätigkeit (z.&nbsp;B. „Jura in München“ oder „Ingenieurin bei BMW“)</label>
+                <label for="p-taetigkeit">Aktuelle Tätigkeit (z.&nbsp;B. „Jura in München“ oder „Ingenieurin bei BMW“)</label>
                 <input id="p-taetigkeit" name="taetigkeit" type="text" maxlength="200">
               </div>
               <div class="field">
-                <label for="p-stadt">Stadt</label>
+                <label for="p-stadt">Aktuelle Stadt</label>
                 <input id="p-stadt" name="stadt" type="text" maxlength="100" placeholder="z. B. Passau">
               </div>
               <fieldset class="field">
@@ -153,10 +162,19 @@
                 <label class="radio"><input type="radio" name="kontakt" value="email" checked> E-Mail</label>
                 <label class="radio"><input type="radio" name="kontakt" value="telefon"> Telefon</label>
               </fieldset>
+              <!-- Vorherige Karriereschritte: Einträge werden per „+“ aus der Vorlage unten erzeugt -->
+              <div class="field--full karriere">
+                <h3 class="karriere-titel">Vorherige Karriereschritte</h3>
+                <div id="karriere-liste" class="karriere-liste"></div>
+                <button type="button" id="karriere-plus" class="karriere-plus">
+                  <span class="karriere-plus-icon" aria-hidden="true">+</span>
+                  Vorherige Karriereschritte
+                </button>
+              </div>
               <div class="field field--full field--check consent">
                 <input id="p-auf-karte" name="auf_karte" type="checkbox">
                 <label for="p-auf-karte"><strong>Auf der Mitgliederkarte sichtbar sein.</strong>
-                  Ich willige ein, dass mein Name, meine Stadt, meine Tätigkeit und die gewählte Kontaktmöglichkeit
+                  Ich willige ein, dass mein Name, meine Stadt, meine Tätigkeit, meine vorherigen Karriereschritte (mit Stadt und Zeitraum) und die gewählte Kontaktmöglichkeit
                   (E-Mail oder Telefon) für andere freigeschaltete Mitglieder des Netzwerk Leopoldinum e.V. sichtbar sind.
                   Ich kann diese Einwilligung jederzeit widerrufen, indem ich das Häkchen entferne
                   (siehe <a href="datenschutz.html">Datenschutz</a>).</label>
@@ -166,6 +184,35 @@
                 <p class="form-status" role="status" aria-live="polite"></p>
               </div>
             </form>
+
+            <template id="karriere-vorlage">
+              <fieldset class="karriere-schritt">
+                <legend class="sr-only">Vorheriger Karriereschritt</legend>
+                <div class="field field--full">
+                  <label data-for="taetigkeit">Tätigkeit</label>
+                  <input data-feld="taetigkeit" type="text" maxlength="200" placeholder="z. B. Studium BWL oder Praktikum bei Siemens">
+                </div>
+                <div class="field field--full">
+                  <label data-for="stadt">Stadt</label>
+                  <input data-feld="stadt" type="text" maxlength="100" placeholder="z. B. Regensburg">
+                </div>
+                <div class="field">
+                  <span class="field-label">Von</span>
+                  <div class="monat-jahr">
+                    <select data-feld="von-monat" aria-label="Von – Monat"></select>
+                    <select data-feld="von-jahr" aria-label="Von – Jahr"></select>
+                  </div>
+                </div>
+                <div class="field">
+                  <span class="field-label">Bis</span>
+                  <div class="monat-jahr">
+                    <select data-feld="bis-monat" aria-label="Bis – Monat"></select>
+                    <select data-feld="bis-jahr" aria-label="Bis – Jahr"></select>
+                  </div>
+                </div>
+                <button type="button" class="karriere-entfernen" aria-label="Diesen Karriereschritt entfernen">×</button>
+              </fieldset>
+            </template>
           </div>
 
           <div class="tab-panel" data-panel="vorstand" hidden>
@@ -300,6 +347,131 @@
               </table>
             </div>
           </div>
+
+          <div class="tab-panel" data-panel="jahresberichte" hidden>
+            <p class="muted">Pro Jahr gibt es einen Jahresbericht als PDF. Er erscheint im
+              <a href="veranstaltungen.html#jahresberichte">Archiv</a> unter „Jahresberichte“, nach Jahren geordnet.</p>
+            <form id="bericht-form" class="signup-form admin-form">
+              <h2 class="form-section field--full" id="bericht-titel">Neuer Jahresbericht</h2>
+              <div class="field">
+                <label for="j-jahr">Jahr *</label>
+                <input id="j-jahr" name="jahr" type="number" min="1900" max="2100" step="1" required>
+              </div>
+              <div class="field">
+                <label for="j-titel">Titel (optional)</label>
+                <input id="j-titel" name="titel" type="text" maxlength="150" placeholder="Standard: „Jahresbericht &lt;Jahr&gt;“">
+              </div>
+              <div class="field field--full">
+                <label for="j-text">Kurzbeschreibung (optional)</label>
+                <textarea id="j-text" name="text" rows="3" maxlength="700"></textarea>
+              </div>
+              <div class="field field--full">
+                <label for="j-datei">PDF-Datei <span id="j-datei-pflicht">*</span> (max. 50&nbsp;MB)</label>
+                <input id="j-datei" name="datei" type="file" accept="application/pdf">
+                <small class="muted" id="j-datei-aktuell" hidden>Hinterlegt ist bereits ein PDF. Eine neue Datei ersetzt es.</small>
+              </div>
+              <div class="field--full form-actions">
+                <button type="submit" class="btn btn-gold">Speichern</button>
+                <button type="button" class="btn btn-ghost" id="bericht-abbrechen" hidden>Abbrechen</button>
+                <p class="form-status" role="status" aria-live="polite"></p>
+              </div>
+            </form>
+
+            <h2 class="admin-subhead">Alle Jahresberichte</h2>
+            <div class="table-wrap">
+              <table class="members-table">
+                <thead>
+                  <tr><th>Jahr</th><th>Titel</th><th>PDF</th><th></th></tr>
+                </thead>
+                <tbody id="berichte-liste"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="tab-panel" data-panel="fotoarchiv" hidden>
+            <h2 class="admin-subhead">Warten auf Freigabe</h2>
+            <p class="muted">Von Mitgliedern hochgeladene Fotos. Erst nach „Freigeben“ sehen alle Mitglieder sie im
+              <a href="veranstaltungen.html#fotoarchiv">Fotoarchiv</a>. Bei jedem neuen Upload kommt eine E-Mail an info@.</p>
+            <div class="form-actions fa-freigabe-aktionen">
+              <button type="button" class="btn btn-gold btn-sm" id="fa-alle-freigeben" hidden>Alle freigeben</button>
+            </div>
+            <div class="fa-freigaben" id="fa-freigaben"></div>
+
+            <form id="jahrgang-form" class="signup-form admin-form">
+              <h2 class="form-section field--full" id="jahrgang-titel">Neuer Abiturjahrgang</h2>
+              <div class="field">
+                <label for="ag-jahr">Abiturjahrgang *</label>
+                <input id="ag-jahr" name="jahr" type="number" min="1900" max="2100" step="1" required>
+              </div>
+              <div class="field">
+                <label for="ag-foto">Klassenfoto (Startbild, optional)</label>
+                <input id="ag-foto" name="foto" type="file" accept="image/*">
+                <small class="muted" id="ag-foto-aktuell" hidden>Ein Klassenfoto ist hinterlegt. Ein neues ersetzt es.</small>
+              </div>
+              <div class="field--full form-actions">
+                <button type="submit" class="btn btn-gold">Speichern</button>
+                <button type="button" class="btn btn-ghost" id="jahrgang-abbrechen" hidden>Abbrechen</button>
+                <p class="form-status" role="status" aria-live="polite"></p>
+              </div>
+            </form>
+
+            <h2 class="admin-subhead">Alle Abiturjahrgänge</h2>
+            <div class="table-wrap">
+              <table class="members-table">
+                <thead>
+                  <tr><th>Jahrgang</th><th>Klassenfoto</th><th>Fotos</th><th></th></tr>
+                </thead>
+                <tbody id="jahrgaenge-liste"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="tab-panel" data-panel="leotermine" hidden>
+            <p class="muted">Ferien und Feiertage stehen automatisch im <a href="leo-kalender.html">Leo-Kalender</a>.
+              Hier trägst du alle weiteren Termine am Leopoldinum ein. Sichtbar sind sie nur für freigeschaltete Mitglieder.</p>
+            <form id="termin-form" class="signup-form admin-form">
+              <h2 class="form-section field--full" id="termin-titel">Neuer Termin</h2>
+              <div class="field field--full">
+                <label for="t-titel">Titel *</label>
+                <input id="t-titel" name="titel" type="text" maxlength="150" required placeholder="z. B. Sommerkonzert, Elternsprechtag, Abiturfeier">
+              </div>
+              <div class="field">
+                <label for="t-datum">Datum *</label>
+                <input id="t-datum" name="datum" type="date" required>
+              </div>
+              <div class="field">
+                <label for="t-bis">Bis (nur bei mehrtägigen Terminen)</label>
+                <input id="t-bis" name="bis" type="date">
+              </div>
+              <div class="field">
+                <label for="t-uhrzeit">Uhrzeit (optional)</label>
+                <input id="t-uhrzeit" name="uhrzeit" type="text" maxlength="40" placeholder="z. B. 19:00 Uhr">
+              </div>
+              <div class="field">
+                <label for="t-ort">Ort (optional)</label>
+                <input id="t-ort" name="ort" type="text" maxlength="150" placeholder="z. B. Aula">
+              </div>
+              <div class="field field--full">
+                <label for="t-beschreibung">Beschreibung (optional)</label>
+                <textarea id="t-beschreibung" name="beschreibung" rows="3" maxlength="1000"></textarea>
+              </div>
+              <div class="field--full form-actions">
+                <button type="submit" class="btn btn-gold">Speichern</button>
+                <button type="button" class="btn btn-ghost" id="termin-abbrechen" hidden>Abbrechen</button>
+                <p class="form-status" role="status" aria-live="polite"></p>
+              </div>
+            </form>
+
+            <h2 class="admin-subhead">Alle Termine</h2>
+            <div class="table-wrap">
+              <table class="members-table">
+                <thead>
+                  <tr><th>Datum</th><th>Termin</th><th>Uhrzeit / Ort</th><th></th></tr>
+                </thead>
+                <tbody id="termine-liste"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -323,6 +495,7 @@
   <script src="assets/vendor/leaflet/leaflet.js"></script>
   <script src="js/config.js"></script>
   <script src="js/supabase-client.js"></script>
+  <script src="js/bild-verkleinern.js"></script>
   <script src="js/mitglieder.js"></script>
 </body>
 </html>
