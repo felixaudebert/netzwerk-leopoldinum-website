@@ -304,6 +304,28 @@ p:last-child { margin-bottom: 0; }
 }
 
 /* ---------- Aktuelles ---------- */
+/* ---------- Vorteile der Mitgliedschaft ---------- */
+.vorteile { background: var(--paper); padding: clamp(56px, 7vw, 96px) 0; }
+.vorteile .section-head { margin-bottom: clamp(20px, 3vw, 32px); }
+.vorteile-titel { font-size: clamp(32px, 4.2vw, 52px); margin-bottom: 16px; }
+.vorteile-lead { max-width: 52ch; margin-bottom: clamp(32px, 4vw, 48px); }
+.vorteile-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+.vorteil {
+  padding: 28px 24px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--gold);
+  border-radius: var(--radius);
+}
+.vorteil-icon { width: 40px; height: 40px; color: var(--blue); margin-bottom: 16px; }
+.vorteil h3 { font-size: 22px; color: var(--blue); margin-bottom: 10px; }
+.vorteil p { font-size: 16px; margin: 0; }
+.vorteile-aktionen { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; margin-top: clamp(32px, 4vw, 48px); }
+.vorteile-login { color: var(--blue); font-family: var(--font-head); font-weight: 600; }
+.ist-eingeloggt .vorteile-aktionen { display: none; }
+@media (max-width: 960px) { .vorteile-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .vorteile-grid { grid-template-columns: 1fr; } }
+
 .news { background: var(--blue); color: var(--white); }
 .news-list { display: grid; gap: clamp(48px, 6vw, 80px); }
 .news-more { margin-top: clamp(48px, 6vw, 72px); }
@@ -489,7 +511,13 @@ p:last-child { margin-bottom: 0; }
 .lk-farbe--ferien { background: rgba(73, 94, 133, 0.16); border: 1px solid rgba(73, 94, 133, 0.35); }
 .lk-farbe--feiertag { background: var(--gold); }
 .lk-farbe--termin { background: var(--blue); }
-#lk-fehler { margin-bottom: 20px; }
+#lk-fehler, #lk-ferien-offen { margin-bottom: 20px; }
+.lk-logo { display: inline-block; height: 14px; width: auto; vertical-align: -2px; margin-right: 5px; }
+.lk-logo--legende { height: 22px; margin-right: 0; }
+.lk-chip--netzwerk { background: var(--ink); }
+.lk-chip--netzwerk .lk-logo { height: 16px; vertical-align: -4px; }
+.lk-eintrag--netzwerk { border-left-color: var(--ink); }
+.lk-eintrag--netzwerk .lk-eintrag-titel .lk-logo { height: 30px; margin-right: 10px; vertical-align: -8px; }
 
 .lk-raster { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
 .lk-wochentage, .lk-tage { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
@@ -549,6 +577,7 @@ p:last-child { margin-bottom: 0; }
   .lk-punkt { width: 6px; height: 6px; border-radius: 50%; }
   .lk-punkt--feiertag { background: var(--gold); }
   .lk-punkt--termin { background: var(--blue); }
+  .lk-punkt--netzwerk { background: var(--ink); box-shadow: 0 0 0 1.5px var(--gold); }
   .lk-monat { font-size: 24px; }
 }
 

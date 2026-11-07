@@ -96,8 +96,10 @@ Nicht geheim (stehen bewusst im Code): Supabase-Adresse und der öffentliche „
 - Bereitstellen: `supabase functions deploy foto-mail --no-verify-jwt`
 
 ### Edge Function `schulkalender`
-- Code: `supabase/functions/schulkalender/index.ts` – liefert Ferien und Feiertage des **laufenden bayerischen Schuljahrs** (1.8.–31.7.) für den Leo-Kalender
-- Quelle: OpenHolidays API (openholidaysapi.org); die Funktion fragt dort an, damit die Browser der Mitglieder keine Verbindung zu einem fremden Dienst aufbauen
+- Code: `supabase/functions/schulkalender/index.ts` – liefert Ferien und Feiertage eines **bayerischen Schuljahrs** (1.8.–31.7.); der Leo-Kalender zeigt das laufende und die fünf kommenden
+- Ferien: OpenHolidays API (openholidaysapi.org); Bayern legt sie nur einige Jahre im Voraus fest – für spätere Jahre zeigt der Kalender einen Hinweis
+- Feiertage: in der Funktion berechnet (feste Daten + Ostern), daher für jedes Jahr vollständig
+- Die Funktion fragt die API, damit die Browser der Mitglieder keine Verbindung zu einem fremden Dienst aufbauen
 - Keine Secrets nötig, wechselt jedes Jahr am 1. August automatisch ins neue Schuljahr
 - Bereitstellen: `supabase functions deploy schulkalender --no-verify-jwt`
 
@@ -115,6 +117,7 @@ Nicht geheim (stehen bewusst im Code): Supabase-Adresse und der öffentliche „
 | `08_jahresberichte.sql` | Jahresberichte (PDF pro Jahr) im Archiv, Speicher | ☐ |
 | `09_fotoarchiv.sql` | Fotoarchiv nach Abiturjahrgängen, Freigabe, E-Mail an info@ | ☐ |
 | `10_leo_kalender.sql` | Termine am Leopoldinum für den Leo-Kalender | ☐ |
+| `11_leo_kalender_netzwerk.sql` | Leo-Kalender: Netzwerk-Termine kennzeichnen (+ erste Konzerte) | ☐ |
 
 Alle Skripte können gefahrlos erneut ausgeführt werden.
 

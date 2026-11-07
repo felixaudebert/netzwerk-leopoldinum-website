@@ -431,6 +431,12 @@
               Hier trägst du alle weiteren Termine am Leopoldinum ein. Sichtbar sind sie nur für freigeschaltete Mitglieder.</p>
             <form id="termin-form" class="signup-form admin-form">
               <h2 class="form-section field--full" id="termin-titel">Neuer Termin</h2>
+              <fieldset class="field field--full">
+                <legend>Art des Termins *</legend>
+                <label class="radio"><input type="radio" name="art" value="leopoldinum" checked> Veranstaltung am Leopoldinum</label>
+                <label class="radio"><input type="radio" name="art" value="netzwerk"> Veranstaltung des Netzwerk Leopoldinum
+                  <small class="muted">(im Kalender mit Logo)</small></label>
+              </fieldset>
               <div class="field field--full">
                 <label for="t-titel">Titel *</label>
                 <input id="t-titel" name="titel" type="text" maxlength="150" required placeholder="z. B. Sommerkonzert, Elternsprechtag, Abiturfeier">

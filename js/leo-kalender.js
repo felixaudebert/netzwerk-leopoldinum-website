@@ -1,6 +1,6 @@
 // Netzwerk Leopoldinum – Leo-Kalender (nur für freigeschaltete Mitglieder)
-// Grundlage: das laufende bayerische Schuljahr (1. August – 31. Juli) mit Ferien und Feiertagen
-// aus der Edge Function "schulkalender". Dazu die Termine am Leopoldinum, die der Vorstand
+// Grundlage: das laufende bayerische Schuljahr (1. August – 31. Juli) und die fünf kommenden,
+// mit Ferien und Feiertagen aus der Edge Function "schulkalender". Dazu die Termine am Leopoldinum, die der Vorstand
 // im Mitgliederbereich einträgt (Tabelle "leo_termine", supabase/10_leo_kalender.sql).
 
 (async () => {
@@ -70,55 +70,90 @@
   }
   $("lk-inhalt").hidden = false;
 
-  // ---------- Daten laden ----------
-  let kalender = null;   // { schuljahr, von, bis, ferien: [{name, von, bis}], feiertage: [{name, datum}] }
-  try {
-    const { data, error } = await sb.functions.invoke("schulkalender", { method: "GET" });
-    if (error) throw error;
-    kalender = data;
-  } catch (e) {
-    console.error(e);
-    $("lk-fehler").hidden = false;
-  }
-
-  // Schuljahr bestimmen (falls die Ferien nicht geladen werden konnten, selbst ausrechnen)
+  // ---------- Zeitraum: laufendes Schuljahr + die fünf kommenden ----------
+  const SCHULJAHRE = 6;
   const jetzt = new Date();
   const startJahr = jetzt.getMonth() >= 7 ? jetzt.getFullYear() : jetzt.getFullYear() - 1;
-  const sjVon = kalender?.von || `${startJahr}-08-01`;
-  const sjBis = kalender?.bis || `${startJahr + 1}-07-31`;
-  const schuljahr = kalender?.schuljahr || `${startJahr}/${String(startJahr + 1).slice(2)}`;
-  $("lk-titel").textContent = `Schuljahr ${schuljahr}`;
-  const ferien = kalender?.ferien || [];
-  const feiertage = kalender?.feiertage || [];
+  const gesamtVon = `${startJahr}-08-01`;
+  const gesamtBis = `${startJahr + SCHULJAHRE}-07-31`;
+  const sjName = (s) => `${s}/${String(s + 1).slice(2)}`;
+  const sjVonMonat = (jahr, monat) => (monat >= 7 ? jahr : jahr - 1);   // August = 7
+
+  // Ferien und Feiertage je Schuljahr – erst laden, wenn man dorthin blättert
+  // { schuljahr, ferien: [{name, von, bis}], ferienFestgelegt, ferienFehler, feiertage: [{name, datum}] }
+  const geladen = new Map();
+  const ladend = new Map();
+  function ladeSchuljahr(s) {
+    if (geladen.has(s)) return Promise.resolve(geladen.get(s));
+    if (!ladend.has(s)) {
+      ladend.set(s, sb.functions.invoke(`schulkalender?start=${s}`, { method: "GET" })
+        .then(({ data, error }) => {
+          if (error) throw error;
+          geladen.set(s, data);
+          return data;
+        })
+        .catch((e) => {
+          console.error(e);
+          return null;   // beim nächsten Blättern erneut versuchen
+        })
+        .finally(() => ladend.delete(s)));
+    }
+    return ladend.get(s);
+  }
+  const alleFerien = () => [...geladen.values()].flatMap((k) => k.ferien || []);
+  const alleFeiertage = () => [...geladen.values()].flatMap((k) => k.feiertage || []);
 
   const { data: termineDaten, error: termineFehler } = await sb
     .from("leo_termine")
     .select("*")
-    .lte("datum", sjBis)
+    .lte("datum", gesamtBis)
     .order("datum", { ascending: true });
   if (termineFehler) console.error(termineFehler);
-  const termine = (termineDaten || []).filter((t) => (t.bis || t.datum) >= sjVon);
+  const termine = (termineDaten || []).filter((t) => (t.bis || t.datum) >= gesamtVon);
 
   // ---------- Was ist an einem Tag? ----------
-  const ferienAm = (tag) => ferien.filter((f) => f.von <= tag && tag <= f.bis);
-  const feiertagAm = (tag) => feiertage.filter((f) => f.datum === tag);
+  const ferienAm = (tag) => alleFerien().filter((f) => f.von <= tag && tag <= f.bis);
+  const feiertagAm = (tag) => alleFeiertage().filter((f) => f.datum === tag);
   const termineAm = (tag) => termine.filter((t) => t.datum <= tag && tag <= (t.bis || t.datum));
 
+  // Kleines Netzwerk-Logo für Termine des Netzwerk Leopoldinum
+  const logo = (hell) => {
+    const img = el("img", "lk-logo");
+    img.src = hell ? "assets/logo-hell.png" : "assets/logo.png";
+    img.alt = "Netzwerk Leopoldinum";
+    img.title = "Veranstaltung des Netzwerk Leopoldinum";
+    return img;
+  };
+
   // ---------- Monatsansicht ----------
-  // Monate des Schuljahrs: August … Juli
   const monate = [];
-  for (let d = ausIso(sjVon); iso(d) <= sjBis; d = new Date(d.getFullYear(), d.getMonth() + 1, 1)) {
+  for (let d = ausIso(gesamtVon); iso(d) <= gesamtBis; d = new Date(d.getFullYear(), d.getMonth() + 1, 1)) {
     monate.push({ jahr: d.getFullYear(), monat: d.getMonth() });
   }
-  let index = monate.findIndex((m) => m.jahr === jetzt.getFullYear() && m.monat === jetzt.getMonth());
-  if (index < 0) index = 0;
+  const heuteIndex = () => Math.max(0, monate.findIndex((m) => m.jahr === jetzt.getFullYear() && m.monat === jetzt.getMonth()));
+  let index = heuteIndex();
+  let zeichnung = 0;   // verhindert, dass eine langsame Antwort einen neueren Monat überschreibt
 
-  function zeichne() {
+  async function zeichne() {
+    const nr = ++zeichnung;
     const { jahr, monat } = monate[index];
+    const s = sjVonMonat(jahr, monat);
     $("lk-monat").textContent = `${MONATE[monat]} ${jahr}`;
+    $("lk-titel").textContent = `Schuljahr ${sjName(s)}`;
     $("lk-zurueck").disabled = index === 0;
     $("lk-weiter").disabled = index === monate.length - 1;
 
+    const k = await ladeSchuljahr(s);
+    if (nr !== zeichnung) return;
+    $("lk-fehler").hidden = !!k && !k.ferienFehler;
+    const offen = $("lk-ferien-offen");
+    offen.hidden = !k || k.ferienFehler || k.ferienFestgelegt !== false;
+    offen.textContent = `Die Schulferien für das Schuljahr ${sjName(s)} hat das bayerische Kultusministerium noch nicht festgelegt. ` +
+      "Feiertage und Termine siehst du trotzdem.";
+    zeichneMonat(jahr, monat);
+  }
+
+  function zeichneMonat(jahr, monat) {
     const tage = $("lk-tage");
     tage.replaceChildren();
     const erster = new Date(jahr, monat, 1);
@@ -150,13 +185,18 @@
       fe.filter((f) => f.von === tag || t === 1 || wochenanfang)
         .forEach((f) => eintraege.append(el("span", "lk-chip lk-chip--ferien", f.name)));
       ft.forEach((f) => eintraege.append(el("span", "lk-chip lk-chip--feiertag", f.name)));
-      te.forEach((x) => eintraege.append(el("span", "lk-chip lk-chip--termin", x.titel)));
+      te.forEach((x) => {
+        const chip = el("span", "lk-chip lk-chip--termin" + (x.netzwerk ? " lk-chip--netzwerk" : ""));
+        if (x.netzwerk) chip.append(logo(true));
+        chip.append(document.createTextNode(x.titel));
+        eintraege.append(chip);
+      });
       zelle.append(eintraege);
 
       // Auf dem Handy: nur farbige Punkte
       const punkte = el("div", "lk-punkte");
       if (ft.length) punkte.append(el("span", "lk-punkt lk-punkt--feiertag"));
-      te.forEach(() => punkte.append(el("span", "lk-punkt lk-punkt--termin")));
+      te.forEach((x) => punkte.append(el("span", "lk-punkt lk-punkt--termin" + (x.netzwerk ? " lk-punkt--netzwerk" : ""))));
       zelle.append(punkte);
 
       tage.append(zelle);
@@ -171,9 +211,9 @@
     $("lk-liste-titel").textContent = `Im ${MONATE[monat]}`;
 
     const punkte = [
-      ...ferien.filter((f) => f.von <= bis && f.bis >= von)
+      ...alleFerien().filter((f) => f.von <= bis && f.bis >= von)
         .map((f) => ({ art: "ferien", datum: f.von, titel: f.name, wann: zeitraum(f.von, f.bis) })),
-      ...feiertage.filter((f) => f.datum >= von && f.datum <= bis)
+      ...alleFeiertage().filter((f) => f.datum >= von && f.datum <= bis)
         .map((f) => ({ art: "feiertag", datum: f.datum, titel: f.name, wann: kurz(f.datum) })),
       ...termine.filter((t) => t.datum <= bis && (t.bis || t.datum) >= von)
         .map((t) => ({ art: "termin", datum: t.datum, titel: t.titel, wann: zeitraum(t.datum, t.bis), t })),
@@ -186,12 +226,15 @@
       return;
     }
     punkte.forEach((p) => {
-      const li = el("li", `lk-eintrag lk-eintrag--${p.art}`);
+      const netzwerk = p.t?.netzwerk === true;
+      const li = el("li", `lk-eintrag lk-eintrag--${p.art}` + (netzwerk ? " lk-eintrag--netzwerk" : ""));
       const kopf = el("div", "lk-eintrag-kopf");
       kopf.append(el("span", "lk-wann", p.wann));
-      const art = { ferien: "Ferien", feiertag: "Feiertag", termin: "Termin" }[p.art];
+      const art = netzwerk ? "Netzwerk Leopoldinum" : { ferien: "Ferien", feiertag: "Feiertag", termin: "Termin am Leopoldinum" }[p.art];
       kopf.append(el("span", "lk-art", art));
-      li.append(kopf, el("strong", "lk-eintrag-titel", p.titel));
+      const titel = el("strong", "lk-eintrag-titel", p.titel);
+      if (netzwerk) titel.prepend(logo(false));
+      li.append(kopf, titel);
       if (p.t) {
         const details = [p.t.uhrzeit, p.t.ort].filter(Boolean).join(" · ");
         if (details) li.append(el("p", "lk-details", details));
@@ -204,8 +247,7 @@
   $("lk-zurueck").addEventListener("click", () => { if (index > 0) { index--; zeichne(); } });
   $("lk-weiter").addEventListener("click", () => { if (index < monate.length - 1) { index++; zeichne(); } });
   $("lk-heute").addEventListener("click", () => {
-    const i = monate.findIndex((m) => m.jahr === jetzt.getFullYear() && m.monat === jetzt.getMonth());
-    index = i < 0 ? 0 : i;
+    index = heuteIndex();
     zeichne();
   });
 

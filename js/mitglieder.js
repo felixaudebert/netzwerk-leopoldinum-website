@@ -1169,6 +1169,7 @@ function terminFormular(t = null) {
   status(terminForm, "", "info");
   if (t) {
     const f = terminForm;
+    f.art.value = t.netzwerk ? "netzwerk" : "leopoldinum";
     f.titel.value = t.titel;
     f.datum.value = t.datum;
     f.bis.value = t.bis || "";
@@ -1192,6 +1193,7 @@ async function ladeTermine() {
     const tr = document.createElement("tr");
     const wann = el("td", datumDe(t.datum) + (t.bis && t.bis !== t.datum ? ` – ${datumDe(t.bis)}` : ""));
     const titel = el("td", t.titel);
+    if (t.netzwerk) titel.append(el("div", "Netzwerk Leopoldinum", "badge badge--wait"));
     if (t.beschreibung) titel.append(el("div", t.beschreibung, "muted"));
     const td = document.createElement("td");
     td.className = "actions";
@@ -1216,6 +1218,7 @@ terminForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const f = e.target;
   const neu = {
+    netzwerk: f.art.value === "netzwerk",
     titel: f.titel.value.trim(),
     datum: f.datum.value,
     bis: f.bis.value || null,
