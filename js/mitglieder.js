@@ -11,6 +11,7 @@ const ROLLEN = {
   sonstiges: "Sonstiges",
 };
 
+const INFO_KONTO = "info@netzwerk-leopoldinum.de";   // Vereinskonto (Vorstand, ohne eigenes Profil)
 let ich = null;        // eigener Eintrag aus "mitglieder"
 let karte = null;      // Leaflet-Karte
 let markerLayer = null;
@@ -180,25 +181,26 @@ async function ladeBereich() {
     return;
   }
   ich = data;
-  // Vorstandsrechte hat nur das Konto info@ – das entscheidet die Datenbank
+  // Vorstandsrechte: das Vereinskonto info@ und Mitglieder mit „Vorstandszugang“ – das entscheidet die Datenbank
   const { data: vorstand } = await sb.rpc("ist_vorstand");
   ich.vorstand = vorstand === true;
+  ich.infoKonto = (ich.email || "").toLowerCase() === INFO_KONTO;   // Vereinskonto ohne eigenes Profil
   ich.darfKarte = ich.freigeschaltet || ich.vorstand;
   zeigeView("bereich");
   if (ich.vorstand) zaehleWartendeFotos();
-  $("#hallo-name").textContent = ich.vorstand ? "Vorstand" : ich.vorname || "";
+  $("#hallo-name").textContent = ich.infoKonto ? "Vorstand" : ich.vorname || "";
   $("#hinweis-wartend").hidden = ich.darfKarte;
   $("#tab-karte").hidden = !ich.darfKarte;
   document.querySelectorAll(".nur-vorstand").forEach((b) => (b.hidden = !ich.vorstand));
   // Leiste ausblenden, wenn kein Reiter übrig ist (z. B. noch nicht freigeschaltet)
   $(".tabs").hidden = ![...document.querySelectorAll(".tabs [data-tab]")].some((b) => !b.hidden);
-  // Der Vorstand hat kein eigenes Profil
-  window.navOhneProfil = ich.vorstand;
+  // Das Vereinskonto info@ hat kein eigenes Profil (Vorstandsmitglieder mit eigenem Konto schon)
+  window.navOhneProfil = ich.infoKonto;
   window.navAktualisieren?.();
   fuelleProfil();
   // „Karte“ und „Mein Profil“ im Menü führen zu mitglieder.html#karte bzw. #profil
   const wunsch = tabAusHash();
-  zeigeTab(wunsch || (ich.vorstand ? "vorstand" : ich.darfKarte ? "karte" : "profil"));
+  zeigeTab(wunsch || (ich.infoKonto ? "vorstand" : ich.darfKarte ? "karte" : "profil"));
 }
 
 // ---------- Tabs ----------
@@ -206,7 +208,7 @@ async function ladeBereich() {
 function tabAusHash() {
   if (!ich) return null;
   if (location.hash === "#karte" && ich.darfKarte) return "karte";
-  if (location.hash === "#profil" && !ich.vorstand) return "profil";
+  if (location.hash === "#profil" && !ich.infoKonto) return "profil";
   return null;
 }
 
@@ -427,7 +429,7 @@ $("#profil-form").addEventListener("submit", async (e) => {
     status(f, "Speichern hat nicht geklappt. Bitte versuche es noch einmal.", "error");
     return;
   }
-  ich = { ...data, vorstand: ich.vorstand, darfKarte: ich.darfKarte };
+  ich = { ...data, vorstand: ich.vorstand, infoKonto: ich.infoKonto, darfKarte: ich.darfKarte };
   $("#hallo-name").textContent = ich.vorname || "";
 
   const { error: kFehler } = await sb.rpc("karriere_speichern", {
@@ -521,8 +523,8 @@ async function ladeVorstand() {
   }
   const tbody = $("#vorstand-liste");
   tbody.replaceChildren();
-  // Das Vorstandskonto selbst nicht in der Liste zeigen
-  const liste = data.filter((m) => m.id !== ich.id);
+  // Das Vereinskonto info@ nicht in der Liste zeigen
+  const liste = data.filter((m) => (m.email || "").toLowerCase() !== INFO_KONTO);
   if (!liste.length) {
     const tr = document.createElement("tr");
     const td = el("td", "Noch keine Mitglieder.", "muted");
@@ -1322,7 +1324,7 @@ async function ladeMitgliederliste() {
     tbody.replaceChildren();
     return leereZeile(tbody, "Die Mitgliederliste konnte nicht geladen werden.", 9);
   }
-  mlDaten = data.filter((m) => m.id !== ich.id);   // das Vorstandskonto selbst nicht zeigen
+  mlDaten = data.filter((m) => (m.email || "").toLowerCase() !== INFO_KONTO);   // das Vereinskonto info@ nicht zeigen
 
   // Filter: nur Jahrgänge, die bei Mitgliedern tatsächlich eingetragen sind (neueste zuerst)
   const auswahl = $("#ml-jahrgang");
@@ -1411,16 +1413,133 @@ function mlDetails(m) {
       ["Website-Zugang", !m.zugang_offen ? "Eingerichtet" + (m.zugang_aktiviert_am ? ` am ${datumDe(m.zugang_aktiviert_am.slice(0, 10))}` : "")
         : m.zugang_eingeladen_am ? `Eingeladen am ${datumDe(m.zugang_eingeladen_am.slice(0, 10))}, noch nicht eingerichtet` : "Noch nicht freigeschaltet"],
       ["Freigeschaltet", m.freigeschaltet ? (m.freigeschaltet_am ? `Ja, am ${datumDe(m.freigeschaltet_am.slice(0, 10))}` : "Ja") : "Nein, wartet"],
-      ["Vereinsverwaltung", jaNein(m.einwilligung)],
+      ["Vorstandszugang", m.vorstandszugang ? "Ja – hat Zugang zum Vorstandsbereich" : "Nein"],
+      ["Einwilligung Datenverarbeitung (Antrag)", jaNein(m.einwilligung)],
       ["Fotos und Videos", p ? jaNein(p.foto_einwilligung) : null],
       ["Auf der Mitgliederkarte", m.auf_karte ? `Ja (Kontakt: ${m.kontakt === "telefon" ? "Telefon" : "E-Mail"})` : "Nein"],
       ["Nachricht bei Anmeldung", m.nachricht],
     ])
   );
   const unten = el("div", null, "ml-details-aktionen");
-  unten.append(knopf("Mitglied löschen", "btn-danger", () => mlLoeschenOeffnen(m)));
+  unten.append(
+    knopf("Bearbeiten", "btn-gold", () => box.replaceWith(mlFormular(m))),
+    knopf("Mitglied löschen", "btn-danger", () => mlLoeschenOeffnen(m))
+  );
   box.append(unten);
   return box;
+}
+
+// ---------- Mitglied bearbeiten (Edge Function "mitglied-bearbeiten") ----------
+function mlFormular(m) {
+  const p = mlPrivat(m) || {};
+  const form = document.createElement("form");
+  form.className = "ml-formular";
+  form.noValidate = true;
+  let nr = 0;
+  const feld = (name, beschriftung, wert, art = "text", optionen) => {
+    const id = `mlf-${m.id.slice(0, 8)}-${++nr}`;
+    const box = el("div", null, "field");
+    const label = el("label", beschriftung);
+    label.htmlFor = id;
+    let eingabe;
+    if (art === "select") {
+      eingabe = document.createElement("select");
+      optionen.forEach(([w, t]) => eingabe.append(new Option(t, w)));
+    } else {
+      eingabe = document.createElement("input");
+      eingabe.type = art;
+    }
+    eingabe.id = id;
+    eingabe.name = name;
+    eingabe.value = wert ?? "";
+    box.append(label, eingabe);
+    return box;
+  };
+  const haken = (name, beschriftung, wert, hinweis) => {
+    const id = `mlf-${m.id.slice(0, 8)}-${++nr}`;
+    const box = el("div", null, "field field--check");
+    const eingabe = document.createElement("input");
+    eingabe.type = "checkbox";
+    eingabe.id = id;
+    eingabe.name = name;
+    eingabe.checked = !!wert;
+    const label = el("label", beschriftung);
+    label.htmlFor = id;
+    if (hinweis) label.append(el("small", " " + hinweis, "muted"));
+    box.append(eingabe, label);
+    return box;
+  };
+  const gruppe = (titel, ...felder) => {
+    const g = el("fieldset", null, "ml-gruppe ml-gruppe--formular");
+    g.append(el("legend", titel), ...felder);
+    return g;
+  };
+
+  form.append(
+    gruppe("Person",
+      feld("vorname", "Vorname *", m.vorname),
+      feld("nachname", "Nachname *", m.nachname),
+      feld("geburtsdatum", "Geburtsdatum", p.geburtsdatum, "date"),
+      feld("rolle", "Ich bin …", m.rolle, "select", [["", "–"], ...Object.entries(ROLLEN)]),
+      feld("jahrgang", "Abiturjahrgang", m.jahrgang, "number"),
+      feld("taetigkeit", "Beschäftigung / Tätigkeit", m.taetigkeit)),
+    gruppe("Kontakt",
+      feld("email", "E-Mail * (zugleich Login-Adresse)", m.email, "email"),
+      feld("telefon", "Telefon", m.telefon, "tel"),
+      feld("strasse", "Straße und Hausnummer", p.strasse),
+      feld("plz", "PLZ", p.plz),
+      feld("ort", "Ort", p.ort)),
+    gruppe("Beitrag und SEPA",
+      feld("beitrag_euro", "Jahresbeitrag in €", p.beitrag_euro, "text"),
+      feld("kontoinhaber", "Kontoinhaber", p.kontoinhaber),
+      feld("kontoinhaber_anschrift", "Anschrift Kontoinhaber", p.kontoinhaber_anschrift),
+      feld("kreditinstitut", "Kreditinstitut", p.kreditinstitut),
+      feld("iban", "IBAN", ibanFormat(p.iban)),
+      feld("bic", "BIC", p.bic)),
+    gruppe("Mitgliedschaft",
+      feld("mitglied_seit", "Mitglied seit", m.mitglied_seit, "date"),
+      haken("freigeschaltet", "Freigeschaltet", m.freigeschaltet, "(Zugang zu Karte, Archiv und Kalender)"),
+      haken("vorstandszugang", "Vorstandszugang", m.vorstandszugang,
+        "– Vereinsverwaltung: Zugang zum Vorstandsbereich mit allen Mitgliederdaten"),
+      haken("einwilligung", "Einwilligung Datenverarbeitung liegt vor", m.einwilligung),
+      haken("foto_einwilligung", "Foto-Einwilligung liegt vor", p.foto_einwilligung))
+  );
+
+  const aktionen = el("div", null, "ml-details-aktionen form-actions");
+  const speichern = el("button", "Speichern", "btn btn-gold btn-sm");
+  speichern.type = "submit";
+  const abbrechen = knopf("Abbrechen", "btn-ghost", () => form.replaceWith(mlDetails(m)));
+  const meldung = el("p", null, "form-status");
+  aktionen.append(speichern, abbrechen, meldung);
+  form.append(aktionen);
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const daten = Object.fromEntries(new FormData(form));
+    ["freigeschaltet", "vorstandszugang", "einwilligung", "foto_einwilligung"].forEach((n) => (daten[n] = form.elements[n].checked));
+    if (daten.vorstandszugang && !m.vorstandszugang &&
+      !confirm(`${mlName(m)} bekommt damit Zugang zum Vorstandsbereich – inklusive aller Mitgliederdaten und Bankverbindungen. Fortfahren?`)) return;
+    if (!daten.vorstandszugang && m.vorstandszugang &&
+      !confirm(`${mlName(m)} den Vorstandszugang entziehen?`)) return;
+    speichern.disabled = true;
+    meldung.textContent = "Wird gespeichert …";
+    meldung.className = "form-status is-info";
+    const { data, error } = await sb.functions.invoke("mitglied-bearbeiten", { body: { id: m.id, daten } });
+    if (error || !data?.ok) {
+      speichern.disabled = false;
+      meldung.textContent = await funktionsFehler(error, "Speichern hat nicht geklappt.");
+      meldung.className = "form-status is-error";
+      return;
+    }
+    // Liste aktualisieren und die Details dieses Mitglieds wieder öffnen
+    const i = mlDaten.findIndex((x) => x.id === m.id);
+    if (i >= 0) mlDaten[i] = data.mitglied;
+    zeigeMitgliederliste();
+    document.querySelector(`#ml-liste tr[data-id="${m.id}"] .ml-details-knopf`)?.click();
+    const anzahl = $("#ml-anzahl");
+    anzahl.textContent = `Gespeichert: ${mlName(data.mitglied)}. ` + anzahl.textContent;
+  });
+  return form;
 }
 
 function zeigeMitgliederliste() {
@@ -1435,6 +1554,7 @@ function zeigeMitgliederliste() {
   liste.forEach((m) => {
     const p = mlPrivat(m);
     const tr = document.createElement("tr");
+    tr.dataset.id = m.id;
     const details = document.createElement("tr");
     details.className = "ml-detailzeile";
     details.hidden = true;
@@ -1448,10 +1568,13 @@ function zeigeMitgliederliste() {
       details.hidden = !details.hidden;
       k.textContent = details.hidden ? "Details" : "Schließen";
     });
+    k.classList.add("ml-details-knopf");
     knopfTd.append(k);
 
+    const nameTd = el("td", mlName(m));
+    if (m.vorstandszugang) nameTd.append(" ", el("span", "Vorstand", "ml-vorstand"));
     tr.append(
-      el("td", mlName(m)),
+      nameTd,
       el("td", m.jahrgang ? String(m.jahrgang) : "–"),
       el("td", ROLLEN[m.rolle] || "–"),
       el("td", m.email),

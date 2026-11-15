@@ -46,6 +46,10 @@ Deno.serve(async (req) => {
 
   // 3. Konto löschen (mit dem Administrator-Schlüssel, der nie den Server verlässt)
   const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const { data: ziel } = await admin.auth.admin.getUserById(id);
+  if (ziel?.user?.email?.toLowerCase() === "info@netzwerk-leopoldinum.de") {
+    return antwort(400, { fehler: "Das Vereinskonto info@ kann nicht gelöscht werden." });
+  }
   const { error } = await admin.auth.admin.deleteUser(id);
   if (error && error.status !== 404) {   // 404 = Login-Konto gab es schon nicht mehr
     console.error(error);

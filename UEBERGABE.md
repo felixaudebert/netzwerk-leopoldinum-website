@@ -77,7 +77,7 @@ Nicht geheim (stehen bewusst im Code): Supabase-Adresse und der öffentliche „
 | `anmeldungen` | **Altlast** aus der ersten Version (vor den Benutzerkonten), wird nicht mehr benutzt | ☐ prüfen, ob leer, dann löschen |
 
 ### Funktionen in der Datenbank
-- `ist_vorstand()` – Vorstand ist **ausschließlich** das bestätigte Konto info@netzwerk-leopoldinum.de
+- `ist_vorstand()` – Vorstand ist das bestätigte Konto info@netzwerk-leopoldinum.de **und** jedes Mitglied mit `vorstandszugang = true` (setzt der Vorstand in der Mitgliederliste → Bearbeiten → „Vorstandszugang“)
 - `ist_freigeschaltet()`, `freischalten(mitglied, wert)`, `mitglieder_karte()`
 - Trigger: `neues_konto` (Konto → Mitgliedseintrag), `karte_einwilligung` (Zeitstempel), `antrag_benachrichtigen` (ruft `antrag-mail`)
 
@@ -99,6 +99,10 @@ Nicht geheim (stehen bewusst im Code): Supabase-Adresse und der öffentliche „
 - Bestandsmitglieder werden mit `node --env-file=.env scripts/bestand-importieren.mjs` aus `bestandsmitglieder.csv` still angelegt (Konto ohne Passwort, keine E-Mail). Die CSV-Datei wird nicht hochgeladen.
 - `zugang-freischalten` (mit Login-Prüfung, nur Vorstand): schickt einem Mitglied eine Einladung mit persönlichem Link (30 Tage gültig) – Button „Website-Zugang freischalten“ in der Mitgliederliste. Nutzt `SMTP_PASS`.
 - `zugang-aktivieren` (`--no-verify-jwt`): löst den Link ein, das Mitglied legt sein Passwort fest (`mitglieder.html?zugang=…`). Gespeichert wird nur ein Hash des Links (Tabelle `zugang_einladungen`).
+
+### Edge Function `mitglied-bearbeiten`
+- Code: `supabase/functions/mitglied-bearbeiten/index.ts` – Vorstand bearbeitet Profil, Anschrift, Bankdaten, Freischaltung und Vorstandszugang eines Mitglieds; eine geänderte E-Mail wird auch als Login-Adresse übernommen
+- Bereitstellen **mit** Login-Prüfung: `supabase functions deploy mitglied-bearbeiten`
 
 ### Edge Function `mitglied-loeschen`
 - Code: `supabase/functions/mitglied-loeschen/index.ts` – löscht ein Mitgliedskonto vollständig (Auth-Konto → per Kaskade Profil, Antragsdaten, Karriereschritte)
@@ -130,6 +134,7 @@ Nicht geheim (stehen bewusst im Code): Supabase-Adresse und der öffentliche „
 | `10_leo_kalender.sql` | Termine am Leopoldinum für den Leo-Kalender | ☐ |
 | `11_leo_kalender_netzwerk.sql` | Leo-Kalender: Netzwerk-Termine kennzeichnen (+ erste Konzerte) | ☐ |
 | `12_bestandsmitglieder_zugang.sql` | Bestandsmitglieder ohne Bankdaten, Einladungslinks für den Website-Zugang | ☐ |
+| `13_vorstandszugang.sql` | Vorstandszugang für einzelne Mitglieder (zusätzlich zu info@) | ☐ |
 
 Alle Skripte können gefahrlos erneut ausgeführt werden.
 
