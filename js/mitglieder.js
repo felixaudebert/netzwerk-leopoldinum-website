@@ -170,6 +170,7 @@ function zeigeTab(name) {
   if (name === "veranstaltungen") ladeEvents();
   if (name === "jahresberichte") ladeBerichte();
   if (name === "fotoarchiv") ladeFotoVerwaltung();
+  if (name === "mitgliederliste") ladeMitgliederliste();
   if (name === "leotermine") ladeTermine();
 }
 
@@ -1239,6 +1240,245 @@ terminForm.addEventListener("submit", async (e) => {
   terminFormular();
   status(f, "Gespeichert – der Termin steht jetzt im Leo-Kalender.", "success");
   ladeTermine();
+});
+
+// ---------- Vorstand: Mitgliederliste ----------
+let mlDaten = [];   // alle Mitglieder inkl. Antragsdaten (mitglieder_privat)
+
+const mlPrivat = (m) => (Array.isArray(m.mitglieder_privat) ? m.mitglieder_privat[0] : m.mitglieder_privat) || null;
+const mlName = (m) => [m.vorname, m.nachname].filter(Boolean).join(" ") || "(ohne Namen)";
+const euro = (n) => Number(n).toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+const ibanFormat = (iban) => (iban || "").replace(/(.{4})/g, "$1 ").trim();
+const ibanVerdeckt = (iban) => (iban ? `${iban.slice(0, 4)} •••• •••• ${iban.slice(-4)}` : "–");
+const jaNein = (wert) => (wert ? "Ja" : "Nein");
+
+async function ladeMitgliederliste() {
+  const tbody = $("#ml-liste");
+  const { data, error } = await sb
+    .from("mitglieder")
+    .select("*, mitglieder_privat(*)")
+    .order("nachname", { ascending: true, nullsFirst: false });
+  if (error) {
+    console.error(error);
+    tbody.replaceChildren();
+    return leereZeile(tbody, "Die Mitgliederliste konnte nicht geladen werden.", 8);
+  }
+  mlDaten = data.filter((m) => m.id !== ich.id);   // das Vorstandskonto selbst nicht zeigen
+
+  // Filter: nur Jahrgänge, die bei Mitgliedern tatsächlich eingetragen sind (neueste zuerst)
+  const auswahl = $("#ml-jahrgang");
+  const gewaehlt = auswahl.value;
+  const jahre = [...new Set(mlDaten.map((m) => m.jahrgang).filter(Boolean))].sort((a, b) => b - a);
+  auswahl.replaceChildren(new Option("Alle Mitglieder", ""),
+    ...jahre.map((j) => new Option(`Abitur ${j} (${mlDaten.filter((m) => m.jahrgang === j).length})`, String(j))));
+  if (jahre.includes(Number(gewaehlt))) auswahl.value = gewaehlt;
+  zeigeMitgliederliste();
+}
+
+function mlGefiltert() {
+  const suche = $("#ml-suche").value.trim().toLowerCase();
+  const jahr = Number($("#ml-jahrgang").value) || null;
+  const stat = $("#ml-status").value;
+  return mlDaten.filter((m) => {
+    if (jahr && m.jahrgang !== jahr) return false;
+    if (stat === "frei" && !m.freigeschaltet) return false;
+    if (stat === "wartend" && m.freigeschaltet) return false;
+    if (!suche) return true;
+    const p = mlPrivat(m);
+    return [mlName(m), m.email, p?.ort, m.stadt].filter(Boolean).join(" ").toLowerCase().includes(suche);
+  });
+}
+
+function mlDetails(m) {
+  const p = mlPrivat(m);
+  const box = el("div", null, "ml-details");
+  const gruppe = (titel, zeilen) => {
+    const g = el("div", null, "ml-gruppe");
+    g.append(el("h4", titel));
+    const dl = document.createElement("dl");
+    zeilen.forEach(([k, v]) => {
+      if (v == null || v === "") v = "–";
+      dl.append(el("dt", k));
+      const dd = document.createElement("dd");
+      if (v instanceof Node) dd.append(v); else dd.textContent = v;
+      dl.append(dd);
+    });
+    g.append(dl);
+    return g;
+  };
+
+  // IBAN zunächst verdeckt (z. B. beim Teilen des Bildschirms), per Klick sichtbar
+  let iban = "–";
+  if (p?.iban) {
+    iban = el("span", ibanVerdeckt(p.iban));
+    const zeigen = el("button", "anzeigen", "ml-zeigen");
+    zeigen.type = "button";
+    zeigen.addEventListener("click", () => {
+      const offen = zeigen.textContent === "verbergen";
+      iban.firstChild.textContent = offen ? ibanVerdeckt(p.iban) : ibanFormat(p.iban);
+      zeigen.textContent = offen ? "anzeigen" : "verbergen";
+    });
+    iban.append(" ", zeigen);
+  }
+
+  box.append(
+    gruppe("Person", [
+      ["Name", mlName(m)],
+      ["Geburtsdatum", p?.geburtsdatum ? datumDe(p.geburtsdatum) : null],
+      ["Ich bin …", ROLLEN[m.rolle]],
+      ["Abiturjahrgang", m.jahrgang],
+      ["Beschäftigung / Tätigkeit", m.taetigkeit],
+    ]),
+    gruppe("Kontakt", [
+      ["E-Mail", m.email],
+      ["Telefon", m.telefon],
+      ["Anschrift", p ? `${p.strasse}, ${p.plz} ${p.ort}` : null],
+      ["Stadt (Profil)", m.stadt],
+    ]),
+    gruppe("Beitrag und SEPA", p ? [
+      ["Jahresbeitrag", euro(p.beitrag_euro)],
+      ["Kontoinhaber", p.kontoinhaber],
+      ["Anschrift Kontoinhaber", p.kontoinhaber_anschrift],
+      ["Kreditinstitut", p.kreditinstitut],
+      ["IBAN", iban],
+      ["BIC", p.bic],
+      ["Mandat erteilt am", p.sepa_mandat_am ? datumDe(p.sepa_mandat_am.slice(0, 10)) : null],
+    ] : [["Hinweis", "Keine Antragsdaten (z. B. eingeladenes Bestandsmitglied oder Papierantrag)."]]),
+    gruppe("Mitgliedschaft und Einwilligungen", [
+      ["Angemeldet am", datumDe(m.created_at.slice(0, 10))],
+      ["Freigeschaltet", m.freigeschaltet ? (m.freigeschaltet_am ? `Ja, am ${datumDe(m.freigeschaltet_am.slice(0, 10))}` : "Ja") : "Nein, wartet"],
+      ["Vereinsverwaltung", jaNein(m.einwilligung)],
+      ["Fotos und Videos", p ? jaNein(p.foto_einwilligung) : null],
+      ["Auf der Mitgliederkarte", m.auf_karte ? `Ja (Kontakt: ${m.kontakt === "telefon" ? "Telefon" : "E-Mail"})` : "Nein"],
+      ["Nachricht bei Anmeldung", m.nachricht],
+    ])
+  );
+  const unten = el("div", null, "ml-details-aktionen");
+  unten.append(knopf("Mitglied löschen", "btn-danger", () => mlLoeschenOeffnen(m)));
+  box.append(unten);
+  return box;
+}
+
+function zeigeMitgliederliste() {
+  const tbody = $("#ml-liste");
+  tbody.replaceChildren();
+  const liste = mlGefiltert();
+  const jahr = $("#ml-jahrgang").value;
+  $("#ml-anzahl").textContent = `${liste.length} ${liste.length === 1 ? "Mitglied" : "Mitglieder"}` +
+    (jahr ? ` im Abiturjahrgang ${jahr}` : "") + (liste.length !== mlDaten.length ? ` (von ${mlDaten.length})` : "");
+  if (!liste.length) return leereZeile(tbody, mlDaten.length ? "Keine Mitglieder passen zum Filter." : "Noch keine Mitglieder.", 8);
+
+  liste.forEach((m) => {
+    const p = mlPrivat(m);
+    const tr = document.createElement("tr");
+    const details = document.createElement("tr");
+    details.className = "ml-detailzeile";
+    details.hidden = true;
+    const td = document.createElement("td");
+    td.colSpan = 8;
+    details.append(td);
+
+    const knopfTd = document.createElement("td");
+    const k = knopf("Details", "btn-ghost", () => {
+      if (!td.firstChild) td.append(mlDetails(m));
+      details.hidden = !details.hidden;
+      k.textContent = details.hidden ? "Details" : "Schließen";
+    });
+    knopfTd.append(k);
+
+    tr.append(
+      el("td", mlName(m)),
+      el("td", m.jahrgang ? String(m.jahrgang) : "–"),
+      el("td", ROLLEN[m.rolle] || "–"),
+      el("td", m.email),
+      el("td", p?.ort || m.stadt || "–"),
+      el("td", datumDe(m.created_at.slice(0, 10))),
+      el("td", m.freigeschaltet ? "Freigeschaltet" : "Wartet", m.freigeschaltet ? "badge badge--ok" : "badge badge--wait"),
+      knopfTd
+    );
+    tbody.append(tr, details);
+  });
+}
+
+["#ml-suche", "#ml-jahrgang", "#ml-status"].forEach((sel) => $(sel).addEventListener("input", zeigeMitgliederliste));
+
+// CSV (für Excel: Semikolon und UTF-8 mit BOM)
+function mlCsv(liste, dateiname) {
+  const spalten = ["Vorname", "Nachname", "E-Mail", "Telefon", "Geburtsdatum", "Straße", "PLZ", "Ort", "Ich bin",
+    "Abiturjahrgang", "Beschäftigung", "Jahresbeitrag", "Kontoinhaber", "Anschrift Kontoinhaber", "Kreditinstitut",
+    "IBAN", "BIC", "SEPA-Mandat am", "Angemeldet am", "Freigeschaltet", "Foto-Einwilligung", "Auf der Karte"];
+  const zeilen = liste.map((m) => {
+    const p = mlPrivat(m) || {};
+    return [m.vorname, m.nachname, m.email, m.telefon, p.geburtsdatum && datumDe(p.geburtsdatum), p.strasse, p.plz, p.ort,
+      ROLLEN[m.rolle], m.jahrgang, m.taetigkeit, p.beitrag_euro != null ? String(p.beitrag_euro).replace(".", ",") : "",
+      p.kontoinhaber, p.kontoinhaber_anschrift, p.kreditinstitut, p.iban, p.bic,
+      p.sepa_mandat_am && datumDe(p.sepa_mandat_am.slice(0, 10)), datumDe(m.created_at.slice(0, 10)),
+      jaNein(m.freigeschaltet), p.foto_einwilligung == null ? "" : jaNein(p.foto_einwilligung), jaNein(m.auf_karte)];
+  });
+  const zelle = (v) => {
+    const s = v == null ? "" : String(v);
+    return /[;"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const csv = "\ufeff" + [spalten, ...zeilen].map((z) => z.map(zelle).join(";")).join("\r\n");
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  link.download = dateiname;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+}
+
+const heuteIso = () => new Date().toISOString().slice(0, 10);
+
+// Export der aktuell gefilterten Liste
+$("#ml-csv").addEventListener("click", () => {
+  const jahr = $("#ml-jahrgang").value;
+  mlCsv(mlGefiltert(), `mitgliederliste${jahr ? "-abitur-" + jahr : ""}-${heuteIso()}.csv`);
+});
+
+// ---------- Mitglied endgültig löschen (Edge Function "mitglied-loeschen") ----------
+const loeschDialog = $("#ml-loeschen-dialog");
+const loeschForm = $("#ml-loeschen-form");
+let mlZuLoeschen = null;
+const dateiName = (text) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-");
+
+function mlLoeschenOeffnen(m) {
+  mlZuLoeschen = m;
+  loeschForm.reset();
+  status(loeschForm, "", "info");
+  $("#ml-loeschen-name").textContent = `${mlName(m)} (${m.email})`;
+  $("#ml-bestaetigung-soll").textContent = mlName(m);
+  loeschForm.querySelector('[type="submit"]').disabled = false;
+  loeschDialog.showModal();
+}
+
+$("#ml-loeschen-abbrechen").addEventListener("click", () => loeschDialog.close());
+
+loeschForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const m = mlZuLoeschen;
+  if (!m) return;
+  if (loeschForm.bestaetigung.value.trim() !== mlName(m)) {
+    return status(loeschForm, "Der eingegebene Name stimmt nicht überein.", "error");
+  }
+  const knopfLoeschen = loeschForm.querySelector('[type="submit"]');
+  knopfLoeschen.disabled = true;
+  if (loeschForm.sichern.checked) mlCsv([m], `mitglied-${dateiName(mlName(m))}-geloescht-${heuteIso()}.csv`);
+
+  status(loeschForm, "Wird gelöscht …", "info");
+  const { data, error } = await sb.functions.invoke("mitglied-loeschen", { body: { id: m.id } });
+  if (error || !data?.ok) {
+    let meldung = "Das Löschen hat nicht geklappt. Bitte versuche es noch einmal.";
+    try {
+      meldung = (await error?.context?.json())?.fehler || meldung;
+    } catch {}
+    console.error(error);
+    knopfLoeschen.disabled = false;
+    return status(loeschForm, meldung, "error");
+  }
+  loeschDialog.close();
+  mlZuLoeschen = null;
+  await ladeMitgliederliste();
+  $("#ml-anzahl").textContent = `${mlName(m)} wurde gelöscht. ` + $("#ml-anzahl").textContent;
 });
 
 start();

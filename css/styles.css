@@ -346,6 +346,12 @@ p:last-child { margin-bottom: 0; }
 }
 .event-media img,
 .event-media video { width: 100%; height: 100%; object-fit: cover; }
+/* Hochformat (setzt js/veranstaltungen-ansicht.js): ganzes Bild/Video zeigen, höchstens ca. 560px hoch */
+.event-media--hoch {
+  aspect-ratio: var(--verhaeltnis);
+  width: min(100%, calc(560px * var(--verhaeltnis)), calc(75vh * var(--verhaeltnis)));
+  justify-self: center;
+}
 .event-media--leer {                 /* Platzhalter, solange kein Bild/Video eingetragen ist */
   display: grid;
   place-items: center;
@@ -819,6 +825,24 @@ fieldset.field legend { font-family: var(--font-head); font-weight: 600; font-si
 .members-table th { font-family: var(--font-head); }
 .badge { white-space: nowrap; font-weight: 600; }
 .members-table .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Vorstand: Mitgliederliste */
+.ml-filter { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 16px; align-items: end; margin: 16px 0 12px; }
+.ml-filter .btn { margin-bottom: 4px; }
+.ml-anzahl { font: 600 15px var(--font-head); margin: 0 0 8px; }
+.ml-tabelle td { white-space: nowrap; }
+.ml-detailzeile > td { background: var(--paper); white-space: normal; padding: 20px; }
+.ml-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px 32px; }
+.ml-gruppe h4 { font-size: 16px; color: var(--blue); margin: 0 0 8px; }
+.ml-gruppe dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 14px; }
+.ml-gruppe dt { opacity: .7; }
+.ml-gruppe dd { margin: 0; word-break: break-word; }
+.ml-details-aktionen { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 16px; }
+.btn-danger { background: #a3392b; color: var(--white); }
+.btn-danger:hover { background: #82291d; }
+.btn-danger[disabled] { opacity: .6; cursor: wait; }
+.ml-zeigen { border: 0; background: none; padding: 0; color: var(--blue); text-decoration: underline; cursor: pointer; font: inherit; }
+@media (max-width: 760px) { .ml-filter { grid-template-columns: 1fr 1fr; } .ml-filter .field:first-child { grid-column: 1 / -1; } }
 .details-row td { background: var(--paper); }
 .details { display: grid; grid-template-columns: max-content 1fr; gap: 6px 20px; margin: 4px 0; }
 .details dt { font-family: var(--font-head); font-weight: 600; }

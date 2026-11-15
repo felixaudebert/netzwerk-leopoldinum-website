@@ -21,6 +21,13 @@
     return node;
   };
 
+  // Hochformat erkennen: dann im echten Seitenverhältnis zeigen statt auf Querformat zuschneiden
+  const formatPruefen = (box, breite, hoehe) => {
+    if (!breite || !hoehe || hoehe <= breite) return;
+    box.classList.add("event-media--hoch");
+    box.style.setProperty("--verhaeltnis", (breite / hoehe).toFixed(4));
+  };
+
   // Bild, Video oder Platzhalter mit Logo
   const medien = (v, hell) => {
     const box = el("div", "event-media");
@@ -30,12 +37,14 @@
       video.controls = true;
       video.preload = "metadata";
       if (v.bild) video.poster = medienUrl(v.bild);
+      video.addEventListener("loadedmetadata", () => formatPruefen(box, video.videoWidth, video.videoHeight));
       box.append(video);
     } else if (v.bild) {
       const img = el("img");
       img.src = medienUrl(v.bild);
       img.alt = v.titel;
       img.loading = "lazy";
+      img.addEventListener("load", () => formatPruefen(box, img.naturalWidth, img.naturalHeight));
       box.append(img);
     } else {
       box.classList.add("event-media--leer");

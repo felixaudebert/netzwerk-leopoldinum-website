@@ -95,6 +95,12 @@ Nicht geheim (stehen bewusst im Code): Supabase-Adresse und der öffentliche „
 - Wird von der Datenbankfunktion `fotos_einreichen` aufgerufen; nutzt **dieselben** Secrets wie `antrag-mail` (`ANTRAG_SECRET`, `SMTP_PASS`, Vault `antrag_mail_secret`)
 - Bereitstellen: `supabase functions deploy foto-mail --no-verify-jwt`
 
+### Edge Function `mitglied-loeschen`
+- Code: `supabase/functions/mitglied-loeschen/index.ts` – löscht ein Mitgliedskonto vollständig (Auth-Konto → per Kaskade Profil, Antragsdaten, Karriereschritte)
+- Prüft mit dem Login des Aufrufers, dass es das Vorstandskonto ist; nutzt dann den Service-Role-Schlüssel (nur auf dem Server)
+- Keine eigenen Secrets nötig (SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY sind automatisch vorhanden)
+- Bereitstellen **mit** Login-Prüfung: `supabase functions deploy mitglied-loeschen`
+
 ### Edge Function `schulkalender`
 - Code: `supabase/functions/schulkalender/index.ts` – liefert Ferien und Feiertage eines **bayerischen Schuljahrs** (1.8.–31.7.); der Leo-Kalender zeigt das laufende und die fünf kommenden
 - Ferien: OpenHolidays API (openholidaysapi.org); Bayern legt sie nur einige Jahre im Voraus fest – für spätere Jahre zeigt der Kalender einen Hinweis
@@ -178,7 +184,7 @@ Login unter **mitglieder.html** mit info@netzwerk-leopoldinum.de.
 | Person ohne Konto auf die Karte setzen (nur mit Einwilligung) | Reiter **Kartenpunkte** |
 | Bericht/Ankündigung für „Aktuelles“ anlegen, bearbeiten, löschen | Reiter **Veranstaltungen** |
 | Beiträge per SEPA einziehen | außerhalb der Webseite (Bank) – Daten aus „Details“ |
-| **Mitglied endgültig löschen** (Austritt) | Supabase → Authentication → Users → Nutzer löschen (löscht automatisch Profil und Antragsdaten) |
+| **Mitglied endgültig löschen** (Austritt) | Reiter **Mitgliederliste** → „Details“ → „Mitglied löschen“ (löscht Konto, Profil, Antragsdaten und Karriereschritte; vorher CSV-Sicherung für die Aufbewahrungspflichten). Notfalls: Supabase → Authentication → Users → Nutzer löschen |
 
 „Aktuelles“ zeigt die drei neuesten Veranstaltungen mit Häkchen „Startseite“; alle bleiben im Archiv
 (veranstaltungen.html). Fotos mit erkennbaren Personen nur mit Foto-Einwilligung hochladen.

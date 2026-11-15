@@ -114,6 +114,7 @@
           <nav class="tabs" role="tablist">
             <button type="button" role="tab" data-tab="karte" id="tab-karte">Karte</button>
             <button type="button" role="tab" data-tab="vorstand" class="nur-vorstand" hidden>Freischaltungen</button>
+            <button type="button" role="tab" data-tab="mitgliederliste" class="nur-vorstand" hidden>Mitgliederliste</button>
             <button type="button" role="tab" data-tab="kartenpunkte" class="nur-vorstand" hidden>Kartenpunkte</button>
             <button type="button" role="tab" data-tab="veranstaltungen" class="nur-vorstand" hidden>Veranstaltungen</button>
             <button type="button" role="tab" data-tab="jahresberichte" class="nur-vorstand" hidden>Jahresberichte</button>
@@ -213,6 +214,63 @@
                 <button type="button" class="karriere-entfernen" aria-label="Diesen Karriereschritt entfernen">×</button>
               </fieldset>
             </template>
+          </div>
+
+          <div class="tab-panel" data-panel="mitgliederliste" hidden>
+            <p class="muted">Alle Mitglieder mit ihren Angaben aus Antrag und Profil. Ein Klick auf „Details“ zeigt Anschrift,
+              Bankverbindung und Einwilligungen. Bitte vertraulich behandeln.</p>
+            <div class="ml-filter">
+              <div class="field">
+                <label for="ml-suche">Suche</label>
+                <input id="ml-suche" type="search" placeholder="Name, E-Mail oder Ort">
+              </div>
+              <div class="field">
+                <label for="ml-jahrgang">Abiturjahrgang</label>
+                <select id="ml-jahrgang"><option value="">Alle Mitglieder</option></select>
+              </div>
+              <div class="field">
+                <label for="ml-status">Status</label>
+                <select id="ml-status">
+                  <option value="">Alle</option>
+                  <option value="frei">Freigeschaltet</option>
+                  <option value="wartend">Wartet auf Freischaltung</option>
+                </select>
+              </div>
+              <button type="button" class="btn btn-ghost btn-sm" id="ml-csv">Als CSV herunterladen</button>
+            </div>
+            <p class="ml-anzahl" id="ml-anzahl" aria-live="polite"></p>
+            <div class="table-wrap">
+              <table class="members-table ml-tabelle">
+                <thead>
+                  <tr><th>Name</th><th>Abitur</th><th>Ich bin …</th><th>E-Mail</th><th>Wohnort</th><th>Angemeldet</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody id="ml-liste"></tbody>
+              </table>
+            </div>
+
+            <!-- Mitglied endgültig löschen -->
+            <dialog class="fa-dialog" id="ml-loeschen-dialog" aria-labelledby="ml-loeschen-titel">
+              <form id="ml-loeschen-form" class="stack">
+                <h2 id="ml-loeschen-titel">Mitglied endgültig löschen</h2>
+                <p>Damit werden <strong id="ml-loeschen-name"></strong> und der Zugang zum Mitgliederbereich vollständig
+                  gelöscht – Konto, Profil, Antragsdaten mit Bankverbindung und Karriereschritte. Das lässt sich nicht rückgängig machen.
+                  Hochgeladene Fotos im Fotoarchiv bleiben erhalten.</p>
+                <div class="field field--check">
+                  <input id="ml-sichern" name="sichern" type="checkbox" checked>
+                  <label for="ml-sichern">Vorher die Daten dieses Mitglieds als CSV herunterladen (empfohlen: SEPA-Mandat
+                    und Beitragsdaten müssen ggf. noch aufbewahrt werden)</label>
+                </div>
+                <div class="field">
+                  <label for="ml-bestaetigung">Zur Bestätigung den Namen eingeben: <span id="ml-bestaetigung-soll"></span></label>
+                  <input id="ml-bestaetigung" name="bestaetigung" type="text" autocomplete="off" required>
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-danger">Endgültig löschen</button>
+                  <button type="button" class="btn btn-ghost" id="ml-loeschen-abbrechen">Abbrechen</button>
+                  <p class="form-status" role="status" aria-live="polite"></p>
+                </div>
+              </form>
+            </dialog>
           </div>
 
           <div class="tab-panel" data-panel="vorstand" hidden>
