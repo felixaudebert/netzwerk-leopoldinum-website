@@ -852,10 +852,6 @@ fieldset.field legend { font-family: var(--font-head); font-weight: 600; font-si
 .ml-zugang .muted { font-size: 13px; margin-bottom: 4px; }
 .ml-zeigen { border: 0; background: none; padding: 0; color: var(--blue); text-decoration: underline; cursor: pointer; font: inherit; }
 @media (max-width: 760px) { .ml-filter { grid-template-columns: 1fr 1fr; } .ml-filter .field:first-child { grid-column: 1 / -1; } }
-.details-row td { background: var(--paper); }
-.details { display: grid; grid-template-columns: max-content 1fr; gap: 6px 20px; margin: 4px 0; }
-.details dt { font-family: var(--font-head); font-weight: 600; }
-.details dd { margin: 0; }
 .badge--ok { color: #2f6b3a; }
 .admin-form { margin-bottom: 48px; }
 .admin-form textarea { resize: vertical; }

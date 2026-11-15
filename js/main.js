@@ -29,6 +29,12 @@ window.navAktualisieren = () => {
   });
   // z. B. für die Schlösser an „Jahresberichte“/„Fotoarchiv“ im Archiv (nur für Gäste sichtbar)
   document.documentElement.classList.toggle("ist-eingeloggt", eingeloggt);
+  // „Vorstand“ nur für Konten mit Vorstandsrechten (merkt sich mitglieder.js nach dem Login)
+  let vorstand = false;
+  try {
+    vorstand = eingeloggt && localStorage.getItem("nl-vorstand") === "1";
+  } catch {}
+  nav.querySelectorAll("[data-nur-vorstand]").forEach((a) => (a.hidden = !vorstand));
   // Das Vorstandskonto hat kein eigenes Profil (setzt mitglieder.js)
   if (window.navOhneProfil) {
     nav.querySelectorAll('a[href="mitglieder.html#profil"]').forEach((a) => (a.hidden = true));
@@ -48,6 +54,7 @@ nav.querySelectorAll("[data-abmelden]").forEach((knopf) => {
     // Seiten ohne Supabase-Verbindung (Impressum, Datenschutz): Anmeldung im Browser löschen
     try {
       Object.keys(localStorage).filter((k) => /^sb-.+-auth-token$/.test(k)).forEach((k) => localStorage.removeItem(k));
+      localStorage.removeItem("nl-vorstand");
     } catch {}
     window.navOhneProfil = false;
     location.href = "index.html";

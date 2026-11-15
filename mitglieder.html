@@ -38,6 +38,7 @@
         <a href="mitglieder.html#karte" data-nav="mitglied" hidden>Karte</a>
         <a href="leo-kalender.html" data-nav="mitglied" hidden>Leo Kalender</a>
         <a href="veranstaltungen.html" data-nav="mitglied" hidden>Archiv</a>
+        <a href="mitglieder.html#vorstand" data-nav="mitglied" data-nur-vorstand hidden>Vorstand</a>
         <a href="mitglieder.html#profil" class="btn btn-gold btn-sm" data-nav="mitglied" hidden>Mein Profil</a>
         <button type="button" class="btn btn-ghost btn-sm" data-nav="mitglied" data-abmelden hidden>Abmelden</button>
       </nav>
@@ -47,7 +48,7 @@
   <main>
     <section class="section members">
       <div class="container">
-        <p class="eyebrow">Mitgliederbereich</p>
+        <p class="eyebrow" id="bereich-titel">Mitgliederbereich</p>
         <span class="gold-line"></span>
 
         <!-- Wird geladen -->
@@ -134,8 +135,8 @@
             Du kannst dein Profil schon jetzt ausfüllen.
           </p>
 
-          <nav class="tabs" role="tablist">
-            <button type="button" role="tab" data-tab="karte" id="tab-karte">Karte</button>
+          <!-- Reiterleiste nur im Vorstandsbereich (Header „Vorstand“); die Karte sieht für alle gleich aus -->
+          <nav class="tabs" role="tablist" aria-label="Vorstandsbereich" hidden>
             <button type="button" role="tab" data-tab="vorstand" class="nur-vorstand" hidden>Freischaltungen</button>
             <button type="button" role="tab" data-tab="mitgliederliste" class="nur-vorstand" hidden>Mitgliederliste</button>
             <button type="button" role="tab" data-tab="kartenpunkte" class="nur-vorstand" hidden>Kartenpunkte</button>
@@ -299,7 +300,8 @@
           </div>
 
           <div class="tab-panel" data-panel="vorstand" hidden>
-            <p class="muted">Neue Anmeldungen erscheinen oben. „Freischalten“ gibt Zugang zur Mitgliederkarte.</p>
+            <p class="muted">Neue Anmeldungen erscheinen oben. „Freischalten“ gibt Zugang zur Mitgliederkarte.
+              Alle Angaben eines Mitglieds findest du in der <strong>Mitgliederliste</strong> unter „Details“.</p>
             <div class="table-wrap">
               <table class="members-table">
                 <thead>

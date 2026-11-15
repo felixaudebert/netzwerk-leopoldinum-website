@@ -190,10 +190,12 @@ async function ladeBereich() {
   if (ich.vorstand) zaehleWartendeFotos();
   $("#hallo-name").textContent = ich.infoKonto ? "Vorstand" : ich.vorname || "";
   $("#hinweis-wartend").hidden = ich.darfKarte;
-  $("#tab-karte").hidden = !ich.darfKarte;
   document.querySelectorAll(".nur-vorstand").forEach((b) => (b.hidden = !ich.vorstand));
-  // Leiste ausblenden, wenn kein Reiter übrig ist (z. B. noch nicht freigeschaltet)
-  $(".tabs").hidden = ![...document.querySelectorAll(".tabs [data-tab]")].some((b) => !b.hidden);
+  // Header-Punkt „Vorstand“ auf allen Seiten zeigen (js/main.js liest das; die Daten selbst schützt die Datenbank)
+  try {
+    if (ich.vorstand) localStorage.setItem("nl-vorstand", "1");
+    else localStorage.removeItem("nl-vorstand");
+  } catch {}
   // Das Vereinskonto info@ hat kein eigenes Profil (Vorstandsmitglieder mit eigenem Konto schon)
   window.navOhneProfil = ich.infoKonto;
   window.navAktualisieren?.();
@@ -209,12 +211,20 @@ function tabAusHash() {
   if (!ich) return null;
   if (location.hash === "#karte" && ich.darfKarte) return "karte";
   if (location.hash === "#profil" && !ich.infoKonto) return "profil";
+  if (location.hash === "#vorstand" && ich.vorstand) return "vorstand";
   return null;
 }
 
+// Reiter des Vorstandsbereichs (Header „Vorstand“)
+const VORSTANDS_REITER = ["vorstand", "mitgliederliste", "kartenpunkte", "veranstaltungen", "jahresberichte", "fotoarchiv", "leotermine"];
+
 function zeigeTab(name) {
-  // Adresse mitführen, damit die Menü-Links „Karte“/„Mein Profil“ immer umschalten
-  const hash = name === "karte" || name === "profil" ? `#${name}` : "";
+  const imVorstand = VORSTANDS_REITER.includes(name);
+  // Reiterleiste und Überschrift nur im Vorstandsbereich
+  $(".tabs").hidden = !imVorstand;
+  $("#bereich-titel").textContent = imVorstand ? "Vorstandsbereich" : "Mitgliederbereich";
+  // Adresse mitführen, damit die Menü-Links „Karte“/„Mein Profil“/„Vorstand“ immer umschalten
+  const hash = imVorstand ? "#vorstand" : name === "karte" || name === "profil" ? `#${name}` : "";
   if (location.hash !== hash) history.replaceState(null, "", location.pathname + location.search + hash);
   document.querySelectorAll('.site-nav a[href^="mitglieder.html#"]').forEach((a) => {
     a.classList.toggle("is-active", a.getAttribute("href") === `mitglieder.html${hash}` && hash !== "");
@@ -546,10 +556,6 @@ async function ladeVorstand() {
     );
     const td = document.createElement("td");
     td.className = "actions";
-    const details = el("button", "Details", "btn btn-sm btn-ghost");
-    details.type = "button";
-    details.addEventListener("click", () => zeigeDetails(m, tr, details));
-    td.append(details);
     if (m.id !== ich.id) {
       const btn = el("button", m.freigeschaltet ? "Sperren" : "Freischalten", "btn btn-sm " + (m.freigeschaltet ? "btn-ghost" : "btn-gold"));
       btn.type = "button";
@@ -568,46 +574,6 @@ async function ladeVorstand() {
     tr.append(td);
     tbody.append(tr);
   });
-}
-
-// Antragsdaten (Adresse, Beitrag, SEPA) unter der Zeile auf- und zuklappen
-async function zeigeDetails(m, tr, button) {
-  const offen = tr.nextElementSibling?.classList.contains("details-row");
-  if (offen) {
-    tr.nextElementSibling.remove();
-    button.textContent = "Details";
-    return;
-  }
-  const { data: p, error } = await sb.from("mitglieder_privat").select("*").eq("id", m.id).maybeSingle();
-  const zeile = document.createElement("tr");
-  zeile.className = "details-row";
-  const td = document.createElement("td");
-  td.colSpan = 6;
-  if (error) {
-    console.error(error);
-    td.append(el("p", "Die Antragsdaten konnten nicht geladen werden."));
-  } else if (!p) {
-    td.append(el("p", "Kein Online-Antrag vorhanden (z. B. eingeladenes Bestandsmitglied).", "muted"));
-  } else {
-    const dl = document.createElement("dl");
-    dl.className = "details";
-    const eintraege = [
-      ["Geburtsdatum", new Date(p.geburtsdatum).toLocaleDateString("de-DE")],
-      ["Adresse", `${p.strasse}, ${p.plz} ${p.ort}`],
-      ["Beschäftigung", m.taetigkeit || "–"],
-      ["Jahresbeitrag", `${Number(p.beitrag_euro).toLocaleString("de-DE", { minimumFractionDigits: 2 })} €`],
-      ["Kontoinhaber", `${p.kontoinhaber}, ${p.kontoinhaber_anschrift}`],
-      ["IBAN", p.iban.replace(/(.{4})/g, "$1 ").trim()],
-      ["Kreditinstitut / BIC", [p.kreditinstitut, p.bic].filter(Boolean).join(" / ")],
-      ["SEPA-Mandat erteilt", new Date(p.sepa_mandat_am).toLocaleString("de-DE")],
-      ["Foto-Einwilligung", p.foto_einwilligung ? "Ja" : "Nein"],
-    ];
-    eintraege.forEach(([k, v]) => dl.append(el("dt", k), el("dd", v)));
-    td.append(dl);
-  }
-  zeile.append(td);
-  tr.after(zeile);
-  button.textContent = "Schließen";
 }
 
 // ---------- Vorstand: gemeinsame Hilfen ----------
