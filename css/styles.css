@@ -841,6 +841,8 @@ fieldset.field legend { font-family: var(--font-head); font-weight: 600; font-si
 .btn-danger { background: #a3392b; color: var(--white); }
 .btn-danger:hover { background: #82291d; }
 .btn-danger[disabled] { opacity: .6; cursor: wait; }
+.ml-zugang .btn { white-space: nowrap; }
+.ml-zugang .muted { font-size: 13px; margin-bottom: 4px; }
 .ml-zeigen { border: 0; background: none; padding: 0; color: var(--blue); text-decoration: underline; cursor: pointer; font: inherit; }
 @media (max-width: 760px) { .ml-filter { grid-template-columns: 1fr 1fr; } .ml-filter .field:first-child { grid-column: 1 / -1; } }
 .details-row td { background: var(--paper); }

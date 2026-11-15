@@ -100,6 +100,29 @@
           </form>
         </div>
 
+        <!-- Website-Zugang über den Einladungslink einrichten (mitglieder.html?zugang=…) -->
+        <div id="view-zugang" class="auth-box" hidden>
+          <h1 id="zugang-titel">Willkommen!</h1>
+          <p id="zugang-text">Lege hier dein persönliches Passwort für den Mitgliederbereich fest.</p>
+          <form id="zugang-form" class="stack" hidden>
+            <div class="field">
+              <label for="zugang-email">E-Mail (damit meldest du dich künftig an)</label>
+              <input id="zugang-email" type="email" autocomplete="username" readonly>
+            </div>
+            <div class="field">
+              <label for="zugang-passwort">Passwort (mind. 8 Zeichen)</label>
+              <input id="zugang-passwort" name="passwort" type="password" autocomplete="new-password" minlength="8" required>
+            </div>
+            <div class="field">
+              <label for="zugang-passwort2">Passwort wiederholen</label>
+              <input id="zugang-passwort2" name="passwort2" type="password" autocomplete="new-password" minlength="8" required>
+            </div>
+            <button type="submit" class="btn btn-gold">Passwort festlegen und anmelden</button>
+          </form>
+          <p class="form-status" id="zugang-status" role="status" aria-live="polite"></p>
+          <p id="zugang-login" hidden><a href="mitglieder.html">Zum Login</a></p>
+        </div>
+
         <!-- Bereich für eingeloggte Mitglieder -->
         <div id="view-bereich" hidden>
           <div class="members-head">
@@ -234,6 +257,8 @@
                   <option value="">Alle</option>
                   <option value="frei">Freigeschaltet</option>
                   <option value="wartend">Wartet auf Freischaltung</option>
+                  <option value="ohne-zugang">Noch kein Website-Zugang</option>
+                  <option value="eingeladen">Eingeladen, Zugang noch nicht eingerichtet</option>
                 </select>
               </div>
               <button type="button" class="btn btn-ghost btn-sm" id="ml-csv">Als CSV herunterladen</button>
@@ -242,7 +267,7 @@
             <div class="table-wrap">
               <table class="members-table ml-tabelle">
                 <thead>
-                  <tr><th>Name</th><th>Abitur</th><th>Ich bin …</th><th>E-Mail</th><th>Wohnort</th><th>Angemeldet</th><th>Status</th><th></th></tr>
+                  <tr><th>Name</th><th>Abitur</th><th>Ich bin …</th><th>E-Mail</th><th>Wohnort</th><th>Mitglied seit</th><th>Status</th><th>Website-Zugang</th><th></th></tr>
                 </thead>
                 <tbody id="ml-liste"></tbody>
               </table>

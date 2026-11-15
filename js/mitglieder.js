@@ -17,7 +17,7 @@ let markerLayer = null;
 
 // ---------- Hilfen ----------
 const zeigeView = (name) => {
-  ["laden", "login", "passwort", "bereich"].forEach((v) => {
+  ["laden", "login", "passwort", "zugang", "bereich"].forEach((v) => {
     $("#view-" + v).hidden = v !== name;
   });
 };
@@ -37,6 +37,9 @@ const el = (tag, text, cls) => {
 
 // ---------- Start ----------
 async function start() {
+  // Einladungslink aus der E-Mail „Dein Zugang zum Mitgliederbereich“
+  const zugangToken = new URLSearchParams(location.search).get("zugang");
+  if (zugangToken) return zeigeZugang(zugangToken);
   const { data: { session } } = await sb.auth.getSession();
   if (window.AUTH_LINK_TYP === "invite" || window.AUTH_LINK_TYP === "recovery") {
     if (session) return zeigeView("passwort");
@@ -50,6 +53,62 @@ sb.auth.onAuthStateChange((event) => {
   // Menü oben (öffentliche Reiter ↔ Karte/Leo Kalender/Archiv/Mein Profil) nach dem Ein- oder Ausloggen umschalten
   setTimeout(() => window.navAktualisieren?.(), 0);
 });
+
+// Fehlermeldung aus einer Edge Function lesen ({ fehler: "…" })
+async function funktionsFehler(error, standard) {
+  try {
+    return (await error?.context?.json())?.fehler || standard;
+  } catch {
+    return standard;
+  }
+}
+
+// ---------- Website-Zugang über Einladungslink einrichten ----------
+async function zeigeZugang(token) {
+  zeigeView("zugang");
+  const meldung = (text, art) => {
+    $("#zugang-status").textContent = text;
+    $("#zugang-status").className = "form-status is-" + art;
+  };
+  meldung("Einladung wird geprüft …", "info");
+  const { data, error } = await sb.functions.invoke("zugang-aktivieren", { body: { token } });
+  if (error || !data?.ok) {
+    $("#zugang-titel").textContent = "Link nicht mehr gültig";
+    $("#zugang-text").hidden = true;
+    $("#zugang-login").hidden = false;
+    return meldung(await funktionsFehler(error, "Dieser Link ist ungültig."), "error");
+  }
+  $("#zugang-titel").textContent = `Willkommen, ${data.vorname || ""}!`.replace(" !", "!");
+  $("#zugang-email").value = data.email;
+  $("#zugang-form").hidden = false;
+  meldung("", "info");
+
+  $("#zugang-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const f = e.target;
+    if (f.passwort.value !== f.passwort2.value) return meldung("Die Passwörter stimmen nicht überein.", "error");
+    const knopfZugang = f.querySelector("button");
+    knopfZugang.disabled = true;
+    meldung("Wird gespeichert …", "info");
+    const { data: fertig, error: fehler } = await sb.functions.invoke("zugang-aktivieren", {
+      body: { token, passwort: f.passwort.value },
+    });
+    if (fehler || !fertig?.ok) {
+      knopfZugang.disabled = false;
+      return meldung(await funktionsFehler(fehler, "Das Passwort konnte nicht gespeichert werden."), "error");
+    }
+    await sb.auth.signOut().catch(() => {});
+    const { error: loginFehler } = await sb.auth.signInWithPassword({ email: fertig.email, password: f.passwort.value });
+    history.replaceState(null, "", location.pathname);
+    if (loginFehler) {
+      zeigeView("login");
+      $("#login-email").value = fertig.email;
+      return status($("#login-form"), "Dein Passwort ist gespeichert. Bitte melde dich jetzt an.", "success");
+    }
+    window.navAktualisieren?.();
+    await ladeBereich();
+  });
+}
 
 // ---------- Login ----------
 $("#login-form").addEventListener("submit", async (e) => {
@@ -1261,7 +1320,7 @@ async function ladeMitgliederliste() {
   if (error) {
     console.error(error);
     tbody.replaceChildren();
-    return leereZeile(tbody, "Die Mitgliederliste konnte nicht geladen werden.", 8);
+    return leereZeile(tbody, "Die Mitgliederliste konnte nicht geladen werden.", 9);
   }
   mlDaten = data.filter((m) => m.id !== ich.id);   // das Vorstandskonto selbst nicht zeigen
 
@@ -1283,6 +1342,8 @@ function mlGefiltert() {
     if (jahr && m.jahrgang !== jahr) return false;
     if (stat === "frei" && !m.freigeschaltet) return false;
     if (stat === "wartend" && m.freigeschaltet) return false;
+    if (stat === "ohne-zugang" && !(m.zugang_offen && !m.zugang_eingeladen_am)) return false;
+    if (stat === "eingeladen" && !(m.zugang_offen && m.zugang_eingeladen_am)) return false;
     if (!suche) return true;
     const p = mlPrivat(m);
     return [mlName(m), m.email, p?.ort, m.stadt].filter(Boolean).join(" ").toLowerCase().includes(suche);
@@ -1336,16 +1397,19 @@ function mlDetails(m) {
       ["Stadt (Profil)", m.stadt],
     ]),
     gruppe("Beitrag und SEPA", p ? [
-      ["Jahresbeitrag", euro(p.beitrag_euro)],
+      ["Jahresbeitrag", p.beitrag_euro != null ? euro(p.beitrag_euro) : "nicht in der Datenbank"],
       ["Kontoinhaber", p.kontoinhaber],
       ["Anschrift Kontoinhaber", p.kontoinhaber_anschrift],
       ["Kreditinstitut", p.kreditinstitut],
-      ["IBAN", iban],
+      ["IBAN", p.iban ? iban : "nicht in der Datenbank"],
       ["BIC", p.bic],
       ["Mandat erteilt am", p.sepa_mandat_am ? datumDe(p.sepa_mandat_am.slice(0, 10)) : null],
     ] : [["Hinweis", "Keine Antragsdaten (z. B. eingeladenes Bestandsmitglied oder Papierantrag)."]]),
     gruppe("Mitgliedschaft und Einwilligungen", [
-      ["Angemeldet am", datumDe(m.created_at.slice(0, 10))],
+      ["Mitglied seit", m.mitglied_seit ? datumDe(m.mitglied_seit) : null],
+      ["Im System seit", datumDe(m.created_at.slice(0, 10))],
+      ["Website-Zugang", !m.zugang_offen ? "Eingerichtet" + (m.zugang_aktiviert_am ? ` am ${datumDe(m.zugang_aktiviert_am.slice(0, 10))}` : "")
+        : m.zugang_eingeladen_am ? `Eingeladen am ${datumDe(m.zugang_eingeladen_am.slice(0, 10))}, noch nicht eingerichtet` : "Noch nicht freigeschaltet"],
       ["Freigeschaltet", m.freigeschaltet ? (m.freigeschaltet_am ? `Ja, am ${datumDe(m.freigeschaltet_am.slice(0, 10))}` : "Ja") : "Nein, wartet"],
       ["Vereinsverwaltung", jaNein(m.einwilligung)],
       ["Fotos und Videos", p ? jaNein(p.foto_einwilligung) : null],
@@ -1366,7 +1430,7 @@ function zeigeMitgliederliste() {
   const jahr = $("#ml-jahrgang").value;
   $("#ml-anzahl").textContent = `${liste.length} ${liste.length === 1 ? "Mitglied" : "Mitglieder"}` +
     (jahr ? ` im Abiturjahrgang ${jahr}` : "") + (liste.length !== mlDaten.length ? ` (von ${mlDaten.length})` : "");
-  if (!liste.length) return leereZeile(tbody, mlDaten.length ? "Keine Mitglieder passen zum Filter." : "Noch keine Mitglieder.", 8);
+  if (!liste.length) return leereZeile(tbody, mlDaten.length ? "Keine Mitglieder passen zum Filter." : "Noch keine Mitglieder.", 9);
 
   liste.forEach((m) => {
     const p = mlPrivat(m);
@@ -1375,7 +1439,7 @@ function zeigeMitgliederliste() {
     details.className = "ml-detailzeile";
     details.hidden = true;
     const td = document.createElement("td");
-    td.colSpan = 8;
+    td.colSpan = 9;
     details.append(td);
 
     const knopfTd = document.createElement("td");
@@ -1392,12 +1456,42 @@ function zeigeMitgliederliste() {
       el("td", ROLLEN[m.rolle] || "–"),
       el("td", m.email),
       el("td", p?.ort || m.stadt || "–"),
-      el("td", datumDe(m.created_at.slice(0, 10))),
+      el("td", datumDe(m.mitglied_seit || m.created_at.slice(0, 10))),
       el("td", m.freigeschaltet ? "Freigeschaltet" : "Wartet", m.freigeschaltet ? "badge badge--ok" : "badge badge--wait"),
+      mlZugangZelle(m),
       knopfTd
     );
     tbody.append(tr, details);
   });
+}
+
+// Spalte „Website-Zugang“: Status und Button zum Freischalten (Edge Function "zugang-freischalten")
+function mlZugangZelle(m) {
+  const td = el("td", null, "ml-zugang");
+  if (!m.zugang_offen) {
+    td.append(el("span", "Eingerichtet", "badge badge--ok"));
+    return td;
+  }
+  if (m.zugang_eingeladen_am) td.append(el("div", `Eingeladen am ${datumDe(m.zugang_eingeladen_am.slice(0, 10))}`, "muted"));
+  const k = knopf(m.zugang_eingeladen_am ? "Erneut senden" : "Website-Zugang freischalten",
+    m.zugang_eingeladen_am ? "btn-ghost" : "btn-gold", async () => {
+      const erneut = !!m.zugang_eingeladen_am;
+      if (!confirm(`${erneut ? "Neue Einladung" : "Einladung"} an ${mlName(m)} (${m.email}) senden?` +
+        (erneut ? "\nDer bisherige Link wird damit ungültig." : ""))) return;
+      k.disabled = true;
+      k.textContent = "Wird gesendet …";
+      const { data, error } = await sb.functions.invoke("zugang-freischalten", { body: { id: m.id } });
+      if (error || !data?.ok) {
+        alert(await funktionsFehler(error, "Die Einladung konnte nicht verschickt werden."));
+        k.disabled = false;
+        k.textContent = erneut ? "Erneut senden" : "Website-Zugang freischalten";
+        return;
+      }
+      m.zugang_eingeladen_am = new Date().toISOString();
+      td.replaceWith(mlZugangZelle(m));
+    });
+  td.append(k);
+  return td;
 }
 
 ["#ml-suche", "#ml-jahrgang", "#ml-status"].forEach((sel) => $(sel).addEventListener("input", zeigeMitgliederliste));
@@ -1406,14 +1500,15 @@ function zeigeMitgliederliste() {
 function mlCsv(liste, dateiname) {
   const spalten = ["Vorname", "Nachname", "E-Mail", "Telefon", "Geburtsdatum", "Straße", "PLZ", "Ort", "Ich bin",
     "Abiturjahrgang", "Beschäftigung", "Jahresbeitrag", "Kontoinhaber", "Anschrift Kontoinhaber", "Kreditinstitut",
-    "IBAN", "BIC", "SEPA-Mandat am", "Angemeldet am", "Freigeschaltet", "Foto-Einwilligung", "Auf der Karte"];
+    "IBAN", "BIC", "SEPA-Mandat am", "Mitglied seit", "Im System seit", "Freigeschaltet", "Website-Zugang", "Foto-Einwilligung", "Auf der Karte"];
   const zeilen = liste.map((m) => {
     const p = mlPrivat(m) || {};
     return [m.vorname, m.nachname, m.email, m.telefon, p.geburtsdatum && datumDe(p.geburtsdatum), p.strasse, p.plz, p.ort,
       ROLLEN[m.rolle], m.jahrgang, m.taetigkeit, p.beitrag_euro != null ? String(p.beitrag_euro).replace(".", ",") : "",
       p.kontoinhaber, p.kontoinhaber_anschrift, p.kreditinstitut, p.iban, p.bic,
-      p.sepa_mandat_am && datumDe(p.sepa_mandat_am.slice(0, 10)), datumDe(m.created_at.slice(0, 10)),
-      jaNein(m.freigeschaltet), p.foto_einwilligung == null ? "" : jaNein(p.foto_einwilligung), jaNein(m.auf_karte)];
+      p.sepa_mandat_am && datumDe(p.sepa_mandat_am.slice(0, 10)), m.mitglied_seit && datumDe(m.mitglied_seit),
+      datumDe(m.created_at.slice(0, 10)), jaNein(m.freigeschaltet),
+      !m.zugang_offen ? "eingerichtet" : m.zugang_eingeladen_am ? "eingeladen" : "noch nicht freigeschaltet", p.foto_einwilligung == null ? "" : jaNein(p.foto_einwilligung), jaNein(m.auf_karte)];
   });
   const zelle = (v) => {
     const s = v == null ? "" : String(v);

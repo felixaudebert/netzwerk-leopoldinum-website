@@ -95,6 +95,11 @@ Nicht geheim (stehen bewusst im Code): Supabase-Adresse und der öffentliche „
 - Wird von der Datenbankfunktion `fotos_einreichen` aufgerufen; nutzt **dieselben** Secrets wie `antrag-mail` (`ANTRAG_SECRET`, `SMTP_PASS`, Vault `antrag_mail_secret`)
 - Bereitstellen: `supabase functions deploy foto-mail --no-verify-jwt`
 
+### Edge Functions `zugang-freischalten` und `zugang-aktivieren`
+- Bestandsmitglieder werden mit `node --env-file=.env scripts/bestand-importieren.mjs` aus `bestandsmitglieder.csv` still angelegt (Konto ohne Passwort, keine E-Mail). Die CSV-Datei wird nicht hochgeladen.
+- `zugang-freischalten` (mit Login-Prüfung, nur Vorstand): schickt einem Mitglied eine Einladung mit persönlichem Link (30 Tage gültig) – Button „Website-Zugang freischalten“ in der Mitgliederliste. Nutzt `SMTP_PASS`.
+- `zugang-aktivieren` (`--no-verify-jwt`): löst den Link ein, das Mitglied legt sein Passwort fest (`mitglieder.html?zugang=…`). Gespeichert wird nur ein Hash des Links (Tabelle `zugang_einladungen`).
+
 ### Edge Function `mitglied-loeschen`
 - Code: `supabase/functions/mitglied-loeschen/index.ts` – löscht ein Mitgliedskonto vollständig (Auth-Konto → per Kaskade Profil, Antragsdaten, Karriereschritte)
 - Prüft mit dem Login des Aufrufers, dass es das Vorstandskonto ist; nutzt dann den Service-Role-Schlüssel (nur auf dem Server)
@@ -124,6 +129,7 @@ Nicht geheim (stehen bewusst im Code): Supabase-Adresse und der öffentliche „
 | `09_fotoarchiv.sql` | Fotoarchiv nach Abiturjahrgängen, Freigabe, E-Mail an info@ | ☐ |
 | `10_leo_kalender.sql` | Termine am Leopoldinum für den Leo-Kalender | ☐ |
 | `11_leo_kalender_netzwerk.sql` | Leo-Kalender: Netzwerk-Termine kennzeichnen (+ erste Konzerte) | ☐ |
+| `12_bestandsmitglieder_zugang.sql` | Bestandsmitglieder ohne Bankdaten, Einladungslinks für den Website-Zugang | ☐ |
 
 Alle Skripte können gefahrlos erneut ausgeführt werden.
 
