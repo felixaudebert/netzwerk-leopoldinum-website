@@ -834,9 +834,9 @@ fieldset.field legend { font-family: var(--font-head); font-weight: 600; font-si
 .ml-detailzeile > td { background: var(--paper); white-space: normal; padding: 20px; }
 .ml-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px 32px; }
 .ml-gruppe h4 { font-size: 16px; color: var(--blue); margin: 0 0 8px; }
-.ml-gruppe dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 14px; }
-.ml-gruppe dt { opacity: .7; }
-.ml-gruppe dd { margin: 0; word-break: break-word; }
+.ml-gruppe dl { margin: 0; display: grid; grid-template-columns: minmax(6em, 40%) minmax(0, 1fr); gap: 6px 12px; font-size: 14px; }
+.ml-gruppe dt { opacity: .7; min-width: 0; overflow-wrap: anywhere; hyphens: auto; }
+.ml-gruppe dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .ml-details-aktionen { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 16px; }
 .btn-danger { background: #a3392b; color: var(--white); }
 .btn-danger:hover { background: #82291d; }

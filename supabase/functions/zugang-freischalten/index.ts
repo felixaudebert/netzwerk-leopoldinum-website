@@ -101,7 +101,10 @@ der Vorstand des Netzwerk Leopoldinum e.V.
     });
   } catch (fehler) {
     console.error(fehler);
-    return antwort(502, { fehler: "Die E-Mail konnte nicht verschickt werden." });
+    // Grund vom Mailserver mitgeben (ohne Zugangsdaten), damit sich Fehler eingrenzen lassen
+    const f = fehler as { code?: string; responseCode?: number; command?: string; message?: string };
+    const grund = [f.code, f.responseCode, f.command, (f.message || "").slice(0, 160)].filter(Boolean).join(" · ");
+    return antwort(502, { fehler: `Die E-Mail konnte nicht verschickt werden (${grund || "unbekannter Fehler"}).` });
   }
 
   await admin.from("mitglieder").update({ zugang_eingeladen_am: new Date().toISOString() }).eq("id", id);

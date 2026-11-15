@@ -1,3 +1,6 @@
-# TODO vor dem Start: "Disallow: /" entfernen, damit Suchmaschinen die Seite finden
+# Netzwerk Leopoldinum – Suchmaschinen dürfen die öffentlichen Seiten anzeigen.
+# Mitgliederbereich, Leo-Kalender, Impressum und Datenschutz sind per <meta name="robots" content="noindex"> ausgeschlossen.
 User-agent: *
-Disallow: /
+Allow: /
+
+Sitemap: https://netzwerk-leopoldinum.de/sitemap.xml
