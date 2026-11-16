@@ -121,14 +121,12 @@ window.archivZugang = new Promise((r) => (zugangFertig = r));
 
       const link = url(b.datei);
       if (link) {
+        // Nur zur Ansicht: Der Bericht öffnet sich im Lesefenster, es gibt keinen Download-Link
         const aktionen = el("div", "report-actions");
-        const ansehen = el("a", "btn btn-gold btn-sm", "PDF ansehen");
-        ansehen.href = link;
-        ansehen.target = "_blank";
-        ansehen.rel = "noopener";
-        const laden = el("a", "btn btn-ghost btn-sm", "Herunterladen");
-        laden.href = link + "&download=" + encodeURIComponent(`Jahresbericht-${b.jahr}.pdf`);
-        aktionen.append(ansehen, laden);
+        const ansehen = el("button", "btn btn-gold btn-sm", "Bericht ansehen");
+        ansehen.type = "button";
+        ansehen.addEventListener("click", () => berichtZeigen(b.titel || `Jahresbericht ${b.jahr}`, link));
+        aktionen.append(ansehen);
         body.append(aktionen);
       } else {
         body.append(el("p", "muted", "Das PDF konnte gerade nicht geladen werden."));
@@ -139,5 +137,89 @@ window.archivZugang = new Promise((r) => (zugangFertig = r));
       liste.append(block);
     });
     window.beimScrollenZeigen?.(liste);
+  }
+
+  // ---------- Lesefenster für Jahresberichte (nur ansehen, kein Download) ----------
+  // Die Seiten werden mit pdf.js (assets/vendor/pdfjs, erst beim ersten Öffnen geladen) als Bilder gezeichnet –
+  // so gibt es keine PDF-Datei mit Download- oder Speichern-Knopf des Browsers.
+  let pdfjsLaden;
+  const pdfjs = () =>
+    (pdfjsLaden ??= new Promise((fertig, fehler) => {
+      const s = document.createElement("script");
+      s.src = "assets/vendor/pdfjs/pdf.min.js";
+      s.onload = () => {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = "assets/vendor/pdfjs/pdf.worker.min.js";
+        fertig(window.pdfjsLib);
+      };
+      s.onerror = () => {
+        pdfjsLaden = null;
+        fehler(new Error("pdf.js konnte nicht geladen werden"));
+      };
+      document.head.append(s);
+    }));
+
+  let fenster = null;
+  let aktuellesDokument = null;
+  function lesefenster() {
+    if (fenster) return fenster;
+    fenster = el("dialog", "bericht-ansicht");
+    fenster.setAttribute("aria-labelledby", "bericht-ansicht-titel");
+    const kopf = el("div", "bericht-ansicht-kopf");
+    const titel = el("h2", "", "");
+    titel.id = "bericht-ansicht-titel";
+    const zu = el("button", "bericht-ansicht-zu", "×");
+    zu.type = "button";
+    zu.setAttribute("aria-label", "Schließen");
+    zu.addEventListener("click", () => fenster.close());
+    kopf.append(titel, zu);
+    const seiten = el("div", "bericht-ansicht-seiten");
+    seiten.addEventListener("contextmenu", (e) => e.preventDefault());   // kein „Bild speichern unter …“
+    fenster.append(kopf, seiten);
+    fenster.addEventListener("click", (e) => e.target === fenster && fenster.close());   // Klick neben das Fenster
+    fenster.addEventListener("close", () => {
+      aktuellesDokument?.destroy();
+      aktuellesDokument = null;
+      seiten.replaceChildren();
+      document.documentElement.classList.remove("bericht-offen");
+    });
+    document.body.append(fenster);
+    return fenster;
+  }
+
+  async function berichtZeigen(titel, link) {
+    const f = lesefenster();
+    const seiten = f.querySelector(".bericht-ansicht-seiten");
+    f.querySelector("h2").textContent = titel;
+    seiten.replaceChildren(el("p", "muted bericht-ansicht-hinweis", "Bericht wird geladen …"));
+    document.documentElement.classList.add("bericht-offen");
+    f.showModal();
+
+    try {
+      const lib = await pdfjs();
+      const ladeAufgabe = lib.getDocument({ url: link, isEvalSupported: false });
+      const dok = await ladeAufgabe.promise;
+      if (!f.open) return dok.destroy();
+      aktuellesDokument = dok;
+      seiten.replaceChildren();
+      const breite = seiten.clientWidth - 2 * 16;
+      const schaerfe = Math.min(window.devicePixelRatio || 1, 2);
+      for (let nr = 1; nr <= dok.numPages; nr++) {
+        if (aktuellesDokument !== dok) return;   // Fenster inzwischen geschlossen
+        const seite = await dok.getPage(nr);
+        const massstab = breite / seite.getViewport({ scale: 1 }).width;
+        const ansicht = seite.getViewport({ scale: massstab * schaerfe });
+        const leinwand = document.createElement("canvas");
+        leinwand.width = Math.floor(ansicht.width);
+        leinwand.height = Math.floor(ansicht.height);
+        leinwand.style.width = `${Math.floor(ansicht.width / schaerfe)}px`;
+        leinwand.setAttribute("aria-label", `Seite ${nr} von ${dok.numPages}`);
+        leinwand.setAttribute("role", "img");
+        seiten.append(leinwand);
+        await seite.render({ canvasContext: leinwand.getContext("2d"), viewport: ansicht }).promise;
+      }
+    } catch (e) {
+      console.error(e);
+      seiten.replaceChildren(el("p", "muted bericht-ansicht-hinweis", "Der Bericht konnte gerade nicht geladen werden. Bitte lade die Seite neu."));
+    }
   }
 })();
