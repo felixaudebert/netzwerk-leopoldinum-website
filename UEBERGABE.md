@@ -237,10 +237,19 @@ Bilder/Videos der Veranstaltungen liegen im Storage-Bucket `veranstaltungen` (be
 
 ---
 
-## 12. Offene Punkte
+## 12. Auffindbarkeit in Suchmaschinen
 
-- ☐ **Vor dem offiziellen Start:** Suchmaschinen-Sperre entfernen – `<meta name="robots" …>` in allen HTML-Seiten
-  (mit `TODO` markiert) und `Disallow: /` in `robots.txt`.
+- **Google Search Console:** Domain-Property `netzwerk-leopoldinum.de` (bestätigt per DNS-TXT-Eintrag bei IONOS), Sitemap `https://netzwerk-leopoldinum.de/sitemap.xml` eingereicht. Konto: ☐
+- **Bing Webmaster Tools** (gilt auch für DuckDuckGo, Ecosia, Yahoo): ☐ eingerichtet (am einfachsten: „Import from Google Search Console“). Konto: ☐
+- **IndexNow:** Schlüsseldatei `<32 Hex-Zeichen>.txt` im Hauptordner (öffentlich, so vorgesehen; wird vom Build mit `*.txt` kopiert). Nach inhaltlichen Änderungen an Startseite oder Archiv: `node scripts/suchmaschinen-melden.mjs`.
+- **Im Code:** Titel und Beschreibung mit „e.V.“ und „Passau“, strukturierte Daten (schema.org `WebSite` + `NGO`) im `<head>` von `index.html`, Vorschaubild `assets/vorschau.jpg` (1200×630) für geteilte Links, `canonical`-Links, `sitemap.xml` mit `lastmod` (bei größeren Änderungen das Datum anpassen).
+- Neue öffentliche Seite? In `sitemap.xml` eintragen, `canonical` und Vorschau-Tags wie in `veranstaltungen.html` setzen.
+
+---
+
+## 13. Offene Punkte
+
+- ☑ Suchmaschinen-Sperre entfernt: Startseite und Archiv sind freigegeben, Mitgliederbereich, Leo-Kalender, Impressum und Datenschutz bleiben `noindex`.
 - ☐ Angebote auf `veranstaltungen.html` prüfen (mit `TODO` markiert).
 - ☐ Tabelle `anmeldungen` (Altlast) prüfen und löschen.
 - ☐ `assets/qr-mitglied.png` wird seit dem Entfernen von „Mitmachen“ nicht mehr benutzt – löschen oder wieder einbauen.
