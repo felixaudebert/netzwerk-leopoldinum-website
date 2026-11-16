@@ -101,27 +101,91 @@
           </form>
         </div>
 
-        <!-- Website-Zugang über den Einladungslink einrichten (mitglieder.html?zugang=…) -->
-        <div id="view-zugang" class="auth-box" hidden>
-          <h1 id="zugang-titel">Willkommen!</h1>
-          <p id="zugang-text">Lege hier dein persönliches Passwort für den Mitgliederbereich fest.</p>
-          <form id="zugang-form" class="stack" hidden>
-            <div class="field">
-              <label for="zugang-email">E-Mail (damit meldest du dich künftig an)</label>
-              <input id="zugang-email" type="email" autocomplete="username" readonly>
+        <!-- Ersteinrichtung: über den Einladungslink (mitglieder.html?zugang=…) mit Passwort,
+             sonst beim ersten Login. Ohne Datenschutz-Bestätigung und Kartenentscheidung geht es nicht weiter. -->
+        <div id="view-einrichtung" class="auth-box auth-box--breit" hidden>
+          <h1 id="einrichtung-titel">Willkommen!</h1>
+          <p id="einrichtung-text">Bevor es losgeht, brauchen wir noch zwei Angaben von dir. Das dauert nur eine Minute.</p>
+          <form id="einrichtung-form" class="stack" hidden novalidate>
+            <!-- 1. Passwort (nur über den Einladungslink) -->
+            <div id="einrichtung-zugang" class="stack einrichtung-teil" hidden>
+              <h2 class="form-section">1. Dein Passwort</h2>
+              <div class="field">
+                <label for="einrichtung-email">E-Mail (damit meldest du dich künftig an)</label>
+                <input id="einrichtung-email" type="email" autocomplete="username" readonly>
+              </div>
+              <div class="field">
+                <label for="einrichtung-passwort">Passwort (mind. 8 Zeichen) *</label>
+                <input id="einrichtung-passwort" name="passwort" type="password" autocomplete="new-password" minlength="8">
+              </div>
+              <div class="field">
+                <label for="einrichtung-passwort2">Passwort wiederholen *</label>
+                <input id="einrichtung-passwort2" name="passwort2" type="password" autocomplete="new-password" minlength="8">
+              </div>
             </div>
-            <div class="field">
-              <label for="zugang-passwort">Passwort (mind. 8 Zeichen)</label>
-              <input id="zugang-passwort" name="passwort" type="password" autocomplete="new-password" minlength="8" required>
+
+            <!-- 2. Datenschutz (Pflicht) -->
+            <div class="stack einrichtung-teil">
+              <h2 class="form-section"><span class="einrichtung-nr">2. </span>Datenschutz</h2>
+              <div class="field field--check consent">
+                <input id="einrichtung-datenschutz" name="datenschutz" type="checkbox">
+                <label for="einrichtung-datenschutz">Ich habe die <a href="datenschutz.html" target="_blank" rel="noopener">Datenschutzerklärung</a>
+                  gelesen und bin damit einverstanden, dass meine Daten zum Zwecke der Vereinsverwaltung und für den Mitgliederbereich
+                  elektronisch gespeichert und verarbeitet werden und ich über meine E-Mail-Adresse Informationen des
+                  Netzwerk Leopoldinum e.V. erhalte. *</label>
+              </div>
             </div>
-            <div class="field">
-              <label for="zugang-passwort2">Passwort wiederholen</label>
-              <input id="zugang-passwort2" name="passwort2" type="password" autocomplete="new-password" minlength="8" required>
+
+            <!-- 3. Mitgliederkarte (Entscheidung ist Pflicht, Anzeige freiwillig) -->
+            <div class="stack einrichtung-teil">
+              <h2 class="form-section"><span class="einrichtung-nr">3. </span>Mitgliederkarte</h2>
+              <div class="karte-zweck">
+                <h3>Wozu die Mitgliederkarte?</h3>
+                <p>Die Karte dient dazu, Leopoldiner auf der ganzen Welt zu vernetzen. Mitglieder finden hier andere, die an einem Ort
+                  leben oder gelebt haben, und können sie direkt fragen – zum Standort, zu Studium, Ausbildung, Beruf und Karrierewegen.
+                  Mit deinem Eintrag hilfst du anderen mit deiner Erfahrung weiter.</p>
+              </div>
+              <p class="muted">Sichtbar sind Name, Stadt, Tätigkeit und eine Kontaktmöglichkeit – nur für freigeschaltete Mitglieder,
+                nicht für die Öffentlichkeit. Ob du dabei bist, entscheidest du; du kannst das jederzeit in deinem Profil ändern.</p>
+              <fieldset class="field einrichtung-wahl">
+                <legend>Möchtest du auf der Mitgliederkarte erscheinen? *</legend>
+                <label class="wahl"><input type="radio" name="auf_karte" value="ja">
+                  <span><strong>Ja, ich möchte auf der Karte sichtbar sein.</strong>
+                    Ich willige ein, dass mein Name, meine Stadt, meine Tätigkeit, meine vorherigen Karriereschritte (mit Stadt und Zeitraum,
+                    sofern ich welche eintrage) und die gewählte Kontaktmöglichkeit (E-Mail oder Telefon) für andere freigeschaltete Mitglieder
+                    des Netzwerk Leopoldinum e.V. sichtbar sind. Ich kann diese Einwilligung jederzeit in meinem Profil widerrufen
+                    (siehe <a href="datenschutz.html" target="_blank" rel="noopener">Datenschutz</a>).</span></label>
+                <label class="wahl"><input type="radio" name="auf_karte" value="nein">
+                  <span><strong>Nein, ich möchte nicht auf der Karte erscheinen.</strong></span></label>
+              </fieldset>
+
+              <div id="einrichtung-karte" class="stack" hidden>
+                <div class="field">
+                  <label for="einrichtung-stadt">Aktuelle Stadt *</label>
+                  <input id="einrichtung-stadt" name="stadt" type="text" maxlength="100" placeholder="z. B. Passau" autocomplete="address-level2">
+                  <small class="muted">Auf der Karte erscheint nur die Stadtmitte, nie deine Adresse.</small>
+                </div>
+                <div class="field">
+                  <label for="einrichtung-taetigkeit">Aktuelle Tätigkeit (optional, z.&nbsp;B. „Jura in München“)</label>
+                  <input id="einrichtung-taetigkeit" name="taetigkeit" type="text" maxlength="200">
+                </div>
+                <fieldset class="field">
+                  <legend>So können andere Mitglieder dich erreichen *</legend>
+                  <label class="radio"><input type="radio" name="kontakt" value="email" checked> E-Mail</label>
+                  <label class="radio"><input type="radio" name="kontakt" value="telefon"> Telefon</label>
+                </fieldset>
+                <div class="field" id="einrichtung-telefon-feld" hidden>
+                  <label for="einrichtung-telefon">Telefonnummer *</label>
+                  <input id="einrichtung-telefon" name="telefon" type="tel" maxlength="40" autocomplete="tel">
+                </div>
+                <p class="muted">Vorherige Karriereschritte kannst du danach unter „Mein Profil“ ergänzen.</p>
+              </div>
             </div>
-            <button type="submit" class="btn btn-gold">Passwort festlegen und anmelden</button>
+
+            <button type="submit" class="btn btn-gold" id="einrichtung-knopf">Speichern und loslegen</button>
           </form>
-          <p class="form-status" id="zugang-status" role="status" aria-live="polite"></p>
-          <p id="zugang-login" hidden><a href="mitglieder.html">Zum Login</a></p>
+          <p class="form-status" id="einrichtung-status" role="status" aria-live="polite"></p>
+          <p id="einrichtung-login" hidden><a href="mitglieder.html">Zum Login</a></p>
         </div>
 
         <!-- Bereich für eingeloggte Mitglieder -->
@@ -147,6 +211,11 @@
           </nav>
 
           <div class="tab-panel" data-panel="karte">
+            <div class="karte-zweck">
+              <h2>Wozu die Mitgliederkarte?</h2>
+              <p>Die Karte dient dazu, Leopoldiner auf der ganzen Welt zu vernetzen. Hier findest du Mitglieder, die an einem Ort
+                leben oder gelebt haben, und kannst sie direkt fragen – zum Standort, zu Studium, Ausbildung, Beruf und Karrierewegen.</p>
+            </div>
             <p class="muted">Auf der Karte erscheinen nur Mitglieder, die dem ausdrücklich zugestimmt haben. Klicke auf einen Punkt, um Kontakt und Tätigkeit zu sehen.</p>
             <div id="karte"></div>
             <p class="karte-legende">

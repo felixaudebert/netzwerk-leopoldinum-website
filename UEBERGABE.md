@@ -85,7 +85,7 @@ Nicht geheim (stehen bewusst im Code): Supabase-Adresse und der öffentliche „
 - Bucket `veranstaltungen` – öffentlich lesbar, Hochladen/Löschen nur Vorstand, max. 50 MB, JPG/PNG/WebP/MP4/WebM
 
 ### Edge Function `antrag-mail`
-- Code: `supabase/functions/antrag-mail/index.ts`
+- Code: `supabase/functions/antrag-mail/index.ts` (Mailtext) und `pdf.ts` (druckfertiger Antrag als PDF-Anhang mit Feldern für Vorstands-Vermerke; schlägt das PDF fehl, geht die Mail trotzdem raus)
 - Secrets: `ANTRAG_SECRET`, `SMTP_PASS` (automatisch vorhanden: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`)
 - Versand über `smtp.ionos.de`, Port 465 (SSL), Absender und Empfänger info@
 - Bereitgestellt mit der Supabase CLI: `supabase functions deploy antrag-mail` (Projekt ist lokal verknüpft, siehe `supabase/.temp/`)
@@ -98,7 +98,8 @@ Nicht geheim (stehen bewusst im Code): Supabase-Adresse und der öffentliche „
 ### Edge Functions `zugang-freischalten` und `zugang-aktivieren`
 - Bestandsmitglieder werden mit `node --env-file=.env scripts/bestand-importieren.mjs` aus `bestandsmitglieder.csv` still angelegt (Konto ohne Passwort, keine E-Mail). Die CSV-Datei wird nicht hochgeladen.
 - `zugang-freischalten` (mit Login-Prüfung, nur Vorstand): schickt einem Mitglied eine Einladung mit persönlichem Link (30 Tage gültig) – Button „Website-Zugang freischalten“ in der Mitgliederliste. Nutzt `SMTP_PASS`.
-- `zugang-aktivieren` (`--no-verify-jwt`): löst den Link ein, das Mitglied legt sein Passwort fest (`mitglieder.html?zugang=…`). Gespeichert wird nur ein Hash des Links (Tabelle `zugang_einladungen`).
+- `zugang-aktivieren` (`--no-verify-jwt`): löst den Link ein (`mitglieder.html?zugang=…`). Das Mitglied legt in **einem** Formular sein Passwort fest, akzeptiert die Datenschutzerklärung und entscheidet, ob es auf der Mitgliederkarte erscheint (dann mit Stadt, Kontaktart, ggf. Telefon). Die Funktion speichert erst Datenschutz + Karte (Datenbankfunktion `einrichtung_speichern`), dann das Passwort. Gespeichert wird nur ein Hash des Links (Tabelle `zugang_einladungen`).
+- **Ersteinrichtung für alle Konten** (`14_ersteinrichtung.sql`): Solange `datenschutz_akzeptiert_am` oder `karte_entschieden_am` leer ist, zeigt `mitglieder.html` nach dem Login nur das Einrichtungsformular, Leo-Kalender und Archiv leiten dorthin um, und `ist_freigeschaltet()` liefert `false` (Karte, Kalender, Fotoarchiv, Jahresberichte gesperrt). Ausgenommen ist nur das Vereinskonto info@. Reihenfolge beim Ausrollen: erst das SQL-Skript, dann `supabase functions deploy zugang-aktivieren --no-verify-jwt`, dann die Webseite.
 
 ### Edge Function `mitglied-bearbeiten`
 - Code: `supabase/functions/mitglied-bearbeiten/index.ts` – Vorstand bearbeitet Profil, Anschrift, Bankdaten, Freischaltung und Vorstandszugang eines Mitglieds; eine geänderte E-Mail wird auch als Login-Adresse übernommen
@@ -135,6 +136,7 @@ Nicht geheim (stehen bewusst im Code): Supabase-Adresse und der öffentliche „
 | `11_leo_kalender_netzwerk.sql` | Leo-Kalender: Netzwerk-Termine kennzeichnen (+ erste Konzerte) | ☐ |
 | `12_bestandsmitglieder_zugang.sql` | Bestandsmitglieder ohne Bankdaten, Einladungslinks für den Website-Zugang | ☐ |
 | `13_vorstandszugang.sql` | Vorstandszugang für einzelne Mitglieder (zusätzlich zu info@) | ☐ |
+| `14_ersteinrichtung.sql` | Ersteinrichtung: Datenschutz bestätigen + Entscheidung zur Mitgliederkarte, vorher kein Zugriff auf Inhalte | ☐ |
 
 Alle Skripte können gefahrlos erneut ausgeführt werden.
 

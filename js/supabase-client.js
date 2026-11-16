@@ -13,3 +13,14 @@ const { url, anonKey } = window.SUPABASE_CONFIG;
 window.sb = window.supabase.createClient(url, anonKey, {
   auth: { detectSessionInUrl: imMitgliederbereich },
 });
+
+// Ersteinrichtung (Datenschutz + Entscheidung zur Mitgliederkarte) noch offen? Dann zuerst dorthin.
+// Die Datenbank sperrt die Inhalte ohnehin; so landet das Mitglied direkt beim richtigen Formular.
+// (Nur auf den Seiten mit Mitgliederinhalten, die Startseite bleibt frei zugänglich.)
+if (/(leo-kalender|veranstaltungen)\.html$/.test(location.pathname)) {
+  window.sb.auth.getSession().then(async ({ data: { session } }) => {
+    if (!session) return;
+    const { data } = await window.sb.rpc("einrichtung_offen");
+    if (data === true) location.replace("mitglieder.html");
+  }).catch((e) => console.error(e));
+}

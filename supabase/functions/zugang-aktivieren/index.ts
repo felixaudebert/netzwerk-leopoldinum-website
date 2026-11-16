@@ -1,7 +1,10 @@
-// Netzwerk Leopoldinum – Einladungslink einlösen und eigenes Passwort festlegen
+// Netzwerk Leopoldinum – Einladungslink einlösen: Passwort, Datenschutz und Mitgliederkarte in einem Schritt
 // Aufruf von mitglieder.html?zugang=<token> (ohne Login, der Link selbst ist der Nachweis).
-//   { token }            → prüft den Link, antwortet mit Vorname und E-Mail
-//   { token, passwort }  → setzt das Passwort, macht den Link ungültig, antwortet mit der E-Mail
+//   { token }                          → prüft den Link, antwortet mit Vorname, E-Mail und bisherigen Profilangaben
+//   { token, passwort, einrichtung }   → speichert Datenschutz-Bestätigung und Kartenentscheidung
+//                                         (Datenbankfunktion einrichtung_speichern, siehe supabase/14_ersteinrichtung.sql),
+//                                         setzt das Passwort, macht den Link ungültig, antwortet mit der E-Mail
+//   einrichtung = { p_datenschutz, p_auf_karte, p_stadt, p_lat, p_lng, p_taetigkeit, p_kontakt, p_telefon }
 //
 // Bereitstellen OHNE Login-Prüfung: supabase functions deploy zugang-aktivieren --no-verify-jwt
 // Automatisch vorhanden: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
@@ -24,11 +27,12 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return antwort(405, { fehler: "Nur POST erlaubt." });
 
-  let token = "", passwort: string | undefined;
+  let token = "", passwort: string | undefined, einrichtung: Record<string, unknown> | undefined;
   try {
     const daten = await req.json();
     token = String(daten.token ?? "");
     passwort = daten.passwort == null ? undefined : String(daten.passwort);
+    einrichtung = daten.einrichtung && typeof daten.einrichtung === "object" ? daten.einrichtung : undefined;
   } catch {
     return antwort(400, { fehler: "Ungültige Anfrage." });
   }
@@ -37,7 +41,7 @@ Deno.serve(async (req) => {
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const { data: einladung } = await admin
     .from("zugang_einladungen")
-    .select("mitglied_id, gueltig_bis, eingeloest_am, mitglieder(email, vorname)")
+    .select("mitglied_id, gueltig_bis, eingeloest_am, mitglieder(email, vorname, stadt, taetigkeit, telefon, kontakt, auf_karte)")
     .eq("token_hash", await sha256(token))
     .maybeSingle();
 
@@ -50,9 +54,39 @@ Deno.serve(async (req) => {
   if (!m) return antwort(404, { fehler: "Dieses Mitglied gibt es nicht mehr." });
 
   // Nur prüfen
-  if (passwort === undefined) return antwort(200, { ok: true, vorname: m.vorname, email: m.email });
+  if (passwort === undefined) {
+    return antwort(200, {
+      ok: true, vorname: m.vorname, email: m.email,
+      stadt: m.stadt, taetigkeit: m.taetigkeit, telefon: m.telefon, kontakt: m.kontakt, auf_karte: m.auf_karte,
+    });
+  }
 
   if (passwort.length < 8) return antwort(400, { fehler: "Das Passwort muss mindestens 8 Zeichen lang sein." });
+  if (!einrichtung) return antwort(400, { fehler: "Bitte akzeptiere die Datenschutzerklärung und entscheide dich zur Mitgliederkarte." });
+
+  // 1. Datenschutz + Karte speichern (die Datenbank prüft alle Angaben). Erst wenn das klappt, wird das Passwort gesetzt.
+  const text = (v: unknown) => (v == null ? null : String(v));
+  const zahl = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
+  const { error: eEinrichtung } = await admin.rpc("einrichtung_speichern", {
+    p_mitglied: einladung.mitglied_id,
+    p_datenschutz: einrichtung.p_datenschutz === true,
+    p_auf_karte: typeof einrichtung.p_auf_karte === "boolean" ? einrichtung.p_auf_karte : null,
+    p_stadt: text(einrichtung.p_stadt),
+    p_lat: zahl(einrichtung.p_lat),
+    p_lng: zahl(einrichtung.p_lng),
+    p_taetigkeit: text(einrichtung.p_taetigkeit),
+    p_kontakt: text(einrichtung.p_kontakt) ?? "email",
+    p_telefon: text(einrichtung.p_telefon),
+  });
+  if (eEinrichtung) {
+    console.error(eEinrichtung);
+    // Eigene Meldungen der Datenbankfunktion (raise exception) direkt weitergeben
+    return antwort(400, {
+      fehler: eEinrichtung.code === "P0001" ? eEinrichtung.message : "Deine Angaben konnten nicht gespeichert werden. Bitte prüfe sie noch einmal.",
+    });
+  }
+
+  // 2. Passwort setzen
   const { error } = await admin.auth.admin.updateUserById(einladung.mitglied_id, { password: passwort, email_confirm: true });
   if (error) {
     console.error(error);

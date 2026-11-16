@@ -18,7 +18,7 @@ let markerLayer = null;
 
 // ---------- Hilfen ----------
 const zeigeView = (name) => {
-  ["laden", "login", "passwort", "zugang", "bereich"].forEach((v) => {
+  ["laden", "login", "passwort", "einrichtung", "bereich"].forEach((v) => {
     $("#view-" + v).hidden = v !== name;
   });
 };
@@ -64,52 +64,159 @@ async function funktionsFehler(error, standard) {
   }
 }
 
-// ---------- Website-Zugang über Einladungslink einrichten ----------
+// ---------- Ersteinrichtung: Passwort (nur Einladung), Datenschutz, Mitgliederkarte ----------
+// Ablauf 1 – Einladungslink (mitglieder.html?zugang=…): alles in einem Formular, gespeichert von der
+//            Edge Function "zugang-aktivieren" (erst Datenschutz + Karte, dann das Passwort).
+// Ablauf 2 – eingeloggt, aber noch nicht eingerichtet (z. B. Online-Antrag oder Konto von vor dieser Änderung):
+//            ladeBereich() zeigt nur dieses Formular, gespeichert über die Datenbankfunktion einrichtung_abschliessen.
+// Die Datenbank sperrt Karte, Leo-Kalender und Archiv, bis beides erledigt ist (supabase/14_ersteinrichtung.sql).
+let einrichtungToken = null;   // gesetzt bei Ablauf 1
+let einrichtungBekannt = {};   // bisherige Stadt mit Koordinaten (unveränderte Stadt nicht neu suchen)
+
+const einrichtungMeldung = (text, art) => {
+  $("#einrichtung-status").textContent = text;
+  $("#einrichtung-status").className = "form-status is-" + art;
+};
+
+function fuelleEinrichtung(daten, mitPasswort) {
+  const f = $("#einrichtung-form");
+  $("#einrichtung-titel").textContent = `Willkommen, ${daten.vorname || ""}!`.replace(" !", "!");
+  $("#einrichtung-text").hidden = false;
+  $("#einrichtung-text").textContent = mitPasswort
+    ? "Lege dein Passwort fest und triff zwei kurze Entscheidungen – dann steht dir der Mitgliederbereich offen."
+    : "Bevor es losgeht, brauchen wir noch zwei Angaben von dir. Das dauert nur eine Minute.";
+  $("#einrichtung-zugang").hidden = !mitPasswort;
+  f.passwort.disabled = f.passwort2.disabled = !mitPasswort;
+  f.passwort.required = f.passwort2.required = mitPasswort;
+  document.querySelectorAll(".einrichtung-nr").forEach((s, i) => (s.textContent = `${i + (mitPasswort ? 2 : 1)}. `));
+  $("#einrichtung-email").value = daten.email || "";
+
+  // Online-Antrag: Datenschutz wurde schon im Antrag angekreuzt
+  f.datenschutz.checked = !!daten.datenschutz_akzeptiert_am;
+  // Wer schon auf der Karte ist, sieht „Ja“ vorausgewählt und bestätigt nur noch
+  f.querySelectorAll('[name="auf_karte"]').forEach((r) => (r.checked = daten.auf_karte === true && r.value === "ja"));
+  f.stadt.value = daten.stadt || "";
+  f.taetigkeit.value = daten.taetigkeit || "";
+  f.telefon.value = daten.telefon || "";
+  f.kontakt.value = daten.kontakt === "telefon" ? "telefon" : "email";
+  einrichtungBekannt = daten.lat != null ? { stadt: daten.stadt, lat: daten.lat, lng: daten.lng } : {};
+  einrichtungFelderZeigen();
+  f.hidden = false;
+  einrichtungMeldung("", "info");
+}
+
+function einrichtungFelderZeigen() {
+  const f = $("#einrichtung-form");
+  const ja = f.querySelector('[name="auf_karte"][value="ja"]').checked;
+  $("#einrichtung-karte").hidden = !ja;
+  $("#einrichtung-telefon-feld").hidden = !(ja && f.kontakt.value === "telefon");
+}
+
+$("#einrichtung-form").addEventListener("change", (e) => {
+  if (e.target.name === "auf_karte" || e.target.name === "kontakt") einrichtungFelderZeigen();
+});
+
+// Ablauf 1: Einladungslink prüfen und Formular mit Passwort zeigen
 async function zeigeZugang(token) {
-  zeigeView("zugang");
-  const meldung = (text, art) => {
-    $("#zugang-status").textContent = text;
-    $("#zugang-status").className = "form-status is-" + art;
-  };
-  meldung("Einladung wird geprüft …", "info");
+  einrichtungToken = token;
+  zeigeView("einrichtung");
+  einrichtungMeldung("Einladung wird geprüft …", "info");
   const { data, error } = await sb.functions.invoke("zugang-aktivieren", { body: { token } });
   if (error || !data?.ok) {
-    $("#zugang-titel").textContent = "Link nicht mehr gültig";
-    $("#zugang-text").hidden = true;
-    $("#zugang-login").hidden = false;
-    return meldung(await funktionsFehler(error, "Dieser Link ist ungültig."), "error");
+    $("#einrichtung-titel").textContent = "Link nicht mehr gültig";
+    $("#einrichtung-text").hidden = true;
+    $("#einrichtung-login").hidden = false;
+    return einrichtungMeldung(await funktionsFehler(error, "Dieser Link ist ungültig."), "error");
   }
-  $("#zugang-titel").textContent = `Willkommen, ${data.vorname || ""}!`.replace(" !", "!");
-  $("#zugang-email").value = data.email;
-  $("#zugang-form").hidden = false;
-  meldung("", "info");
+  fuelleEinrichtung(data, true);
+}
 
-  $("#zugang-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const f = e.target;
-    if (f.passwort.value !== f.passwort2.value) return meldung("Die Passwörter stimmen nicht überein.", "error");
-    const knopfZugang = f.querySelector("button");
-    knopfZugang.disabled = true;
-    meldung("Wird gespeichert …", "info");
-    const { data: fertig, error: fehler } = await sb.functions.invoke("zugang-aktivieren", {
-      body: { token, passwort: f.passwort.value },
-    });
-    if (fehler || !fertig?.ok) {
-      knopfZugang.disabled = false;
-      return meldung(await funktionsFehler(fehler, "Das Passwort konnte nicht gespeichert werden."), "error");
+// Ablauf 2: eingeloggt, Einrichtung noch offen
+function zeigeEinrichtung() {
+  einrichtungToken = null;
+  zeigeView("einrichtung");
+  fuelleEinrichtung(ich, false);
+}
+
+$("#einrichtung-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const f = e.target;
+  const fehler = (text, feld) => {
+    einrichtungMeldung(text, "error");
+    feld?.focus();
+  };
+
+  if (einrichtungToken) {
+    if (f.passwort.value.length < 8) return fehler("Das Passwort muss mindestens 8 Zeichen lang sein.", f.passwort);
+    if (f.passwort.value !== f.passwort2.value) return fehler("Die Passwörter stimmen nicht überein.", f.passwort2);
+  }
+  if (!f.datenschutz.checked) return fehler("Bitte akzeptiere die Datenschutzerklärung.", f.datenschutz);
+  const wahl = f.querySelector('[name="auf_karte"]:checked')?.value;
+  if (!wahl) {
+    return fehler("Bitte entscheide, ob du auf der Mitgliederkarte erscheinen möchtest.", f.querySelector('[name="auf_karte"]'));
+  }
+
+  const einrichtung = { p_datenschutz: true, p_auf_karte: wahl === "ja" };
+  if (wahl === "ja") {
+    const stadt = f.stadt.value.trim();
+    const telefon = f.telefon.value.trim();
+    if (!stadt) return fehler("Für die Karte brauchen wir deine Stadt.", f.stadt);
+    if (f.kontakt.value === "telefon" && !telefon) {
+      return fehler("Bitte gib eine Telefonnummer ein oder wähle E-Mail als Kontakt.", f.telefon);
     }
+    Object.assign(einrichtung, {
+      p_stadt: stadt,
+      p_taetigkeit: f.taetigkeit.value.trim() || null,
+      p_kontakt: f.kontakt.value,
+      p_telefon: telefon || null,
+    });
+  }
+
+  const knopfEinrichtung = $("#einrichtung-knopf");
+  knopfEinrichtung.disabled = true;
+  einrichtungMeldung("Wird gespeichert …", "info");
+  try {
+    // Stadt → Koordinaten (nur wenn neu oder geändert)
+    if (wahl === "ja") {
+      const ort = einrichtungBekannt.stadt === einrichtung.p_stadt && einrichtungBekannt.lat != null
+        ? einrichtungBekannt
+        : await findeStadt(einrichtung.p_stadt).catch(() => null);
+      if (!ort) return fehler("Diese Stadt haben wir nicht gefunden. Bitte prüfe die Schreibweise.", f.stadt);
+      einrichtungBekannt = { stadt: einrichtung.p_stadt, lat: ort.lat, lng: ort.lng };
+      Object.assign(einrichtung, { p_lat: ort.lat, p_lng: ort.lng });
+    }
+
+    if (!einrichtungToken) {
+      const { error } = await sb.rpc("einrichtung_abschliessen", einrichtung);
+      if (error) {
+        console.error(error);
+        return fehler(error.code === "P0001" ? error.message : "Speichern hat nicht geklappt. Bitte versuche es noch einmal.");
+      }
+      f.reset();
+      return await ladeBereich();
+    }
+
+    const passwort = f.passwort.value;
+    const { data: fertig, error } = await sb.functions.invoke("zugang-aktivieren", {
+      body: { token: einrichtungToken, passwort, einrichtung },
+    });
+    if (error || !fertig?.ok) return fehler(await funktionsFehler(error, "Deine Angaben konnten nicht gespeichert werden."));
+    einrichtungToken = null;
+    f.reset();
     await sb.auth.signOut().catch(() => {});
-    const { error: loginFehler } = await sb.auth.signInWithPassword({ email: fertig.email, password: f.passwort.value });
+    const { error: loginFehler } = await sb.auth.signInWithPassword({ email: fertig.email, password: passwort });
     history.replaceState(null, "", location.pathname);
     if (loginFehler) {
       zeigeView("login");
       $("#login-email").value = fertig.email;
-      return status($("#login-form"), "Dein Passwort ist gespeichert. Bitte melde dich jetzt an.", "success");
+      return status($("#login-form"), "Dein Zugang ist eingerichtet. Bitte melde dich jetzt an.", "success");
     }
     window.navAktualisieren?.();
     await ladeBereich();
-  });
-}
+  } finally {
+    knopfEinrichtung.disabled = false;
+  }
+});
 
 // ---------- Login ----------
 $("#login-form").addEventListener("submit", async (e) => {
@@ -186,11 +293,6 @@ async function ladeBereich() {
   ich.vorstand = vorstand === true;
   ich.infoKonto = (ich.email || "").toLowerCase() === INFO_KONTO;   // Vereinskonto ohne eigenes Profil
   ich.darfKarte = ich.freigeschaltet || ich.vorstand;
-  zeigeView("bereich");
-  if (ich.vorstand) zaehleWartendeFotos();
-  $("#hallo-name").textContent = ich.infoKonto ? "Vorstand" : ich.vorname || "";
-  $("#hinweis-wartend").hidden = ich.darfKarte;
-  document.querySelectorAll(".nur-vorstand").forEach((b) => (b.hidden = !ich.vorstand));
   // Header-Punkt „Vorstand“ auf allen Seiten zeigen (js/main.js liest das; die Daten selbst schützt die Datenbank)
   try {
     if (ich.vorstand) localStorage.setItem("nl-vorstand", "1");
@@ -199,6 +301,17 @@ async function ladeBereich() {
   // Das Vereinskonto info@ hat kein eigenes Profil (Vorstandsmitglieder mit eigenem Konto schon)
   window.navOhneProfil = ich.infoKonto;
   window.navAktualisieren?.();
+
+  // Ersteinrichtung noch offen (Datenschutz nicht bestätigt oder keine Entscheidung zur Karte)?
+  // Dann gibt es nur dieses Formular – auch für Vorstandsmitglieder mit eigenem Konto, nicht für info@.
+  ich.einrichtungOffen = !ich.infoKonto && (!ich.datenschutz_akzeptiert_am || !ich.karte_entschieden_am);
+  if (ich.einrichtungOffen) return zeigeEinrichtung();
+
+  zeigeView("bereich");
+  if (ich.vorstand) zaehleWartendeFotos();
+  $("#hallo-name").textContent = ich.infoKonto ? "Vorstand" : ich.vorname || "";
+  $("#hinweis-wartend").hidden = ich.darfKarte;
+  document.querySelectorAll(".nur-vorstand").forEach((b) => (b.hidden = !ich.vorstand));
   fuelleProfil();
   // „Karte“ und „Mein Profil“ im Menü führen zu mitglieder.html#karte bzw. #profil
   const wunsch = tabAusHash();
@@ -208,7 +321,7 @@ async function ladeBereich() {
 // ---------- Tabs ----------
 // Welcher Bereich laut Adresse (#karte, #profil) gewünscht ist – sofern erlaubt
 function tabAusHash() {
-  if (!ich) return null;
+  if (!ich || ich.einrichtungOffen) return null;
   if (location.hash === "#karte" && ich.darfKarte) return "karte";
   if (location.hash === "#profil" && !ich.infoKonto) return "profil";
   if (location.hash === "#vorstand" && ich.vorstand) return "vorstand";
@@ -1381,6 +1494,8 @@ function mlDetails(m) {
       ["Freigeschaltet", m.freigeschaltet ? (m.freigeschaltet_am ? `Ja, am ${datumDe(m.freigeschaltet_am.slice(0, 10))}` : "Ja") : "Nein, wartet"],
       ["Vorstandszugang", m.vorstandszugang ? "Ja – hat Zugang zum Vorstandsbereich" : "Nein"],
       ["Einwilligung Datenverarbeitung (Antrag)", jaNein(m.einwilligung)],
+      ["Datenschutzerklärung akzeptiert", m.datenschutz_akzeptiert_am ? `Ja, am ${datumDe(m.datenschutz_akzeptiert_am.slice(0, 10))}` : "Noch nicht"],
+      ["Entscheidung zur Karte", m.karte_entschieden_am ? `Getroffen am ${datumDe(m.karte_entschieden_am.slice(0, 10))}` : "Noch nicht"],
       ["Fotos und Videos", p ? jaNein(p.foto_einwilligung) : null],
       ["Auf der Mitgliederkarte", m.auf_karte ? `Ja (Kontakt: ${m.kontakt === "telefon" ? "Telefon" : "E-Mail"})` : "Nein"],
       ["Nachricht bei Anmeldung", m.nachricht],

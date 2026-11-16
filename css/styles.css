@@ -719,6 +719,22 @@ p:last-child { margin-bottom: 0; }
 .members { min-height: 70vh; }
 .members h1 { font-size: clamp(30px, 4vw, 48px); margin: 24px 0; }
 .auth-box { max-width: 440px; }
+/* Ersteinrichtung (Passwort, Datenschutz, Mitgliederkarte) */
+.auth-box--breit { max-width: 680px; }
+.einrichtung-teil { margin-bottom: 0; }
+.einrichtung-teil .form-section { margin-top: 8px; padding-top: 20px; border-top: 1px solid var(--line); }
+/* Erklärung zum Zweck der Mitgliederkarte (Karten-Reiter und Ersteinrichtung) */
+.karte-zweck { background: var(--paper); border-left: 4px solid var(--gold); border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; }
+.karte-zweck h2, .karte-zweck h3 { font-size: 18px; margin: 0 0 6px; color: var(--blue); }
+.karte-zweck p { margin: 0; line-height: 1.6; }
+.einrichtung-wahl { display: flex; flex-direction: column; gap: 10px; }
+.wahl {
+  display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 8px; font-family: var(--font-body); font-weight: 400; line-height: 1.5;
+}
+.wahl:has(input:checked) { border-color: var(--gold-dark); background: var(--paper); }
+.wahl input { margin-top: 4px; width: 18px; height: 18px; flex: none; accent-color: var(--gold-dark); }
+.wahl a { color: var(--blue); text-decoration: underline; }
 .stack { display: flex; flex-direction: column; gap: 18px; margin-bottom: 24px; }
 .stack .btn { align-self: flex-start; }
 .auth-links { line-height: 2; }
