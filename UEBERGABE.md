@@ -159,6 +159,9 @@ Alle Skripte können gefahrlos erneut ausgeführt werden.
   (`.github/workflows/netzwerk-leopoldinum-website-build.yaml`, Zeile `cp -r …`).
   **Neue HTML-Seiten müssen dort ergänzt werden**, sonst fehlen sie online.
 - Die beiden anderen Workflow-Dateien stammen von IONOS und sollen nicht bearbeitet werden.
+- **`supabase-wachhalten.yaml`** (eigene Datei): fragt jeden Montag die Tabelle `veranstaltungen` ab,
+  damit das kostenlose Supabase-Projekt nicht wegen Inaktivität pausiert. Kommt eine Fehler-Mail von
+  GitHub („Supabase wach halten failed“), im Supabase-Dashboard nachsehen und das Projekt ggf. wieder starten.
 - AVV mit IONOS: ☐
 
 ---
